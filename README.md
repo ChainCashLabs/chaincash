@@ -1,1 +1,1 @@
-# ChainCash Simulations
+# ChainCash Paper Draft and Simulations
