@@ -2,19 +2,36 @@ package chaincash
 
 import scala.util.Random
 
+/**
+ * We consider that every ChainCash agent may be associated with a pubkey. In general, pubkey could be corresponding
+ * to a complex cryptographic statement (e.g. provable via a sigma-protocol, like in Ergo).
+ */
 case class PubKey(value: String)
 
+/**
+ * An issuer, also known as an agent, every participant in ChainCash monetary system can issue new money
+ */
 case class Issuer(pk: PubKey)
 
+/**
+ * Signature which is proving knowledge of a secret corresponding to public key `pk`
+ * // todo: add message?
+ */
 case class Signature(pk: PubKey)
 
+/**
+ * Every agent may have reserve backing money spend or issued by the agent with collateral, or signalizing
+ * trust which can be expressed towards the agent
+ */
 trait Reserve {
   val issuer: Issuer
 
   def usCentAmount: Long // in us cents
 }
 
-trait TrustBasedReserve
+trait TrustBasedReserve extends Reserve {
+  def usCentAmount: Long  = 0L
+}
 
 trait CollateralBasedReserve extends Reserve
 
@@ -26,6 +43,9 @@ case class UsdReserve(usCentAmount: Long, issuer: Issuer) extends CollateralBase
   val usd: Double = usCentAmount / 100.0
 }
 
+/**
+ * A record added to a note when it is being spent
+ */
 case class BackingStatement(reserve: Reserve, signature: Signature)
 
 // amount is in usd cents for now
