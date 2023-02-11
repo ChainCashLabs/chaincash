@@ -30,8 +30,8 @@
 \newcommand{\authnote}[2]{}
 \fi
 
-\newcommand{\knote}[1]{{\authnote{\textcolor{green}{Alex notes}}{#1}}}
-\newcommand{\mnote}[1]{{\authnote{\textcolor{red}{Amitabh notes}}{#1}}}
+\newcommand{\knote}[1]{{\authnote{\textcolor{green}{kushti notes}}{#1}}}
+\newcommand{\mnote}[1]{{\authnote{\textcolor{red}{scalahub notes}}{#1}}}
 
 \usepackage[dvipsnames]{xcolor}
 \usepackage[colorinlistoftodos,prependcaption,textsize=tiny]{todonotes}
@@ -106,10 +106,14 @@ We use Ergo as a Proof-of-Work blockchain to implement \cc{}, as it is built on 
 
 \section{\cc{} Blockchain Design in General}
 
+To implement \cc{} on top of a UTXO cryptocurrency, two contracts are needed, a note contract and a reserve contract. Reserve contract locks 
+
 
 \section{\cc{} Implementation}
 
 \section{Applications}
+
+\cc{} could be seen as a powerful foundation for other monetary systems, and we are going to show it in this section. 
 
 \subsection{LETS}
 
