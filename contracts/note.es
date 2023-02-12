@@ -1,9 +1,11 @@
 {
-    // Contract paths:
+    // Note contract
+
+    // It has two execution paths:
 
     // spend: full or with change
 
-    // redeem
+    // redeem: 
 
     // to create a note, ...
 
@@ -75,7 +77,7 @@
 
       sigmaProp(selfInputCorrect && sameScript && insertionPerformed && properSignature && properReserve && nextHolderDefined && tokensPreserved)
     } else {
-      // redeem path
+      // redemption path
       val proof = getVar[Coll[Byte]](1).get
       val value = history.get(reserveId, proof).get
 

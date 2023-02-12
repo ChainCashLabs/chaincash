@@ -1,4 +1,6 @@
-package chaincash
+package chaincash.model
+
+import chaincash.*
 
 import scala.util.Random
 
@@ -83,25 +85,25 @@ trait AcceptanceFilter {
   def acceptable(note: Note): Boolean
 }
 
-case class UtxoSet(set: Seq[Note]){
+case class NoteSet(set: Seq[Note]){
 
   // inefficient and insecure
-  def process(transaction: Transaction): UtxoSet = transaction match {
+  def process(transaction: Transaction): NoteSet = transaction match {
     case ExchangeTransaction(input, outputs) =>
-      UtxoSet(set.filter(n => n != input) ++ outputs)
+      NoteSet(set.filter(n => n != input) ++ outputs)
     case MintingTransaction(output) =>
-      UtxoSet(set :+ output)
+      NoteSet(set :+ output)
     case RedeemingTransaction(input) =>
-      UtxoSet(set.filter(n => n != input))
+      NoteSet(set.filter(n => n != input))
   }
 }
 
-object UtxoSet {
-  def empty: UtxoSet = UtxoSet(Seq.empty)
+object NoteSet {
+  def empty: NoteSet = NoteSet(Seq.empty)
 }
 
 object Tester extends App {
-  def testingAcceptanceFilter(utxoSet: UtxoSet): AcceptanceFilter = testingAcceptanceFilter(utxoSet.set)
+  def testingAcceptanceFilter(utxoSet: NoteSet): AcceptanceFilter = testingAcceptanceFilter(utxoSet.set)
 
   def testingAcceptanceFilter(circulatingNotes: Seq[Note]): AcceptanceFilter = {
     (note: Note) => {
@@ -122,7 +124,7 @@ object Tester extends App {
   val reserve2 = UsdReserve(1500 * 100, issuer2)
   val reserve3 = UsdReserve(700 * 100, issuer3)
 
-  var utxoSet = UtxoSet.empty
+  var utxoSet = NoteSet.empty
 
   val tx1 = MintingTransaction(Note(1, 100 * 100, Seq(BackingStatement(reserve1, Signature(pk1)))))
 
