@@ -22,10 +22,11 @@
     val reserve = CONTEXT.dataInputs(0)
     val reserveId = reserve.tokens(0)._1
 
+    val holder = SELF.R5[GroupElement].get
+
     if(action == 0) {
       // spending path
 
-      val holder = SELF.R5[GroupElement].get
       val holderBytesHash = blake2b256(proveDlog(holder).propBytes)
 
       val noteValueBytes = longToByteArray(noteValue)
@@ -58,7 +59,17 @@
       val sameScript = selfOutput.propositionBytes == SELF.propositionBytes
       val nextHolderDefined = selfOutput.R5[AvlTree].isDefined
 
-      val tokensPreserved = selfOutput.tokens(0) == SELF.tokens(0) // todo: spend with change
+      val changeIdx = getVar[Byte](4)
+      val tokensPreserved = if(changeIdx.isDefined) {
+        val changeOutput = OUTPUTS(changeIdx.get)
+
+        (selfOutput.tokens(0)._2 + changeOutput.tokens(0)._2) == SELF.tokens(0)._2 &&
+            changeOutput.tokens(0)._1 == noteTokenId &&
+            selfOutput.tokens(0)._1 == noteTokenId &&
+            changeOutput.propositionBytes == SELF.propositionBytes
+      } else {
+        selfOutput.tokens(0) == SELF.tokens(0)
+      }
 
       sigmaProp(sameScript && insertionPerformed && properSignature && properReserve && nextHolderDefined && tokensPreserved)
     } else {
@@ -86,7 +97,7 @@
 
       //todo: check that note token burnt
 
-      sigmaProp(properSignature)
+      sigmaProp(properSignature && proveDlog(holder))
     }
 
 }
