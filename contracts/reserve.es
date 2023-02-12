@@ -16,13 +16,18 @@
 
     if (action == 0) {
       // redeem path
-      // provides gold price in nanoErg / kg
+      // provides gold price in nanoErg per kg
       val goldOracle = CONTEXT.dataInputs(0)
-      sigmaProp(selfPreserved)
+      val oracleRate = goldOracle.R4[Long] / 1000000 // normalize to nanoerg per mg of gold
+      val tokensRedeemed = INPUTS(0).tokens(0)._2 // 1 token == 1 mg of gold
+      val nanoergsToRedeem = tokensRedeemed * oracleRate
+      val redeemCorrect = (SELF.value - selfOut.value) <= nanoergsToRedeem
+      sigmaProp(selfPreserved && redeemCorrect)
     } else if (action == 1) {
       // top up
       sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added
     } else {
+      // todo: implement refund
       sigmaProp(false)
     }
 
