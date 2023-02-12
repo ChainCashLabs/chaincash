@@ -11,8 +11,6 @@
 
     val history = SELF.R4[AvlTree].get
 
-    val holder = SELF.R5[GroupElement].get
-    val holderBytesHash = blake2b256(proveDlog(holder).propBytes)
 
     val selfOutput = OUTPUTS(0)
 
@@ -21,10 +19,14 @@
     val noteTokenId = SELF.tokens(0)._1
     val noteValue = SELF.tokens(0)._2
 
+    val reserve = CONTEXT.dataInputs(0)
+    val reserveId = reserve.tokens(0)._1
+
     if(action == 0) {
       // spending path
-      val reserve = CONTEXT.dataInputs(0)
-      val leafKey = reserve.id
+
+      val holder = SELF.R5[GroupElement].get
+      val holderBytesHash = blake2b256(proveDlog(holder).propBytes)
 
       val noteValueBytes = longToByteArray(noteValue)
       val message = noteValueBytes ++ noteTokenId
@@ -45,7 +47,7 @@
       val properReserve = blake2b256(reserve.propositionBytes) == holderBytesHash
 
       val leafValue = cBytes ++ sBytes
-      val keyVal = (leafKey, leafValue)
+      val keyVal = (reserveId, leafValue)
       val proof = getVar[Coll[Byte]](3).get
 
       val nextTree: Option[AvlTree] = history.insert(Coll(keyVal), proof)
@@ -61,8 +63,6 @@
       sigmaProp(sameScript && insertionPerformed && properSignature && properReserve && nextHolderDefined && tokensPreserved)
     } else {
       // redeem path
-      val reserve = CONTEXT.dataInputs(0)
-      val reserveId = reserve.id
       val proof = getVar[Coll[Byte]](1).get
       val value = history.get(reserveId, proof).get
 
@@ -73,12 +73,18 @@
 
       val maxValueBytes = getVar[Coll[Byte]](2).get
       val message = maxValueBytes ++ noteTokenId
+      val maxValue = byteArrayToLong(maxValueBytes)
 
-      val U = g.exp(s).multiply(holder.exp(c)).getEncoded // as a byte array
+      val reservePubKey = getVar[GroupElement](3).get
 
-      val properSignature = cBytes == blake2b256(U ++ message)
+      val U = g.exp(s).multiply(reservePubKey.exp(c)).getEncoded // as a byte array
 
+      val properSignature =
+            (cBytes == blake2b256(U ++ message)) &&
+                reserve.propositionBytes == proveDlog(reservePubKey).propBytes &&
+                noteValue <= maxValue
 
+      //todo: check that note token burnt
 
       sigmaProp(properSignature)
     }
