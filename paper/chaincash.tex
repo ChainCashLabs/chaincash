@@ -104,12 +104,18 @@ We propose to implement \cc{} monetary system on top of a blockchain as:
 We use Ergo as a Proof-of-Work blockchain to implement \cc{}, as it is built on minimal trust assumptions~\cite{kya}, and UTXO transactional model as well as AVL+ trees support are making notes implementation feasible.
 
 
-\section{\cc{} Blockchain Design in General}
-
-To implement \cc{} on top of a UTXO cryptocurrency, two contracts are needed, a note contract and a reserve contract. Reserve contract locks 
-
-
 \section{\cc{} Implementation}
+
+To implement \cc{} on top of a UTXO cryptocurrency, such as Ergo, two contracts are needed, a note contract and a reserve contract. Reserve contract locks ERGs ro tokens on top of Ergo blockchain and allow to redeem native or custom tokens when a note is presented. Note contract ensures that the note has
+proper history, allows for not to be split into two parts~(payment and change), and allows for note redemption.
+
+\subsection{Layer1 implementation}
+
+\subsection{Layer2 implementation}
+
+\subsection{Offchain and on-chain part}
+
+Off-chain part is the most important piece of \cc{} system, as it allows for recognizing possibly different forms of note and reserve contracts, and also do note value estimation. 
 
 \section{Applications}
 
@@ -121,18 +127,13 @@ To implement \cc{} on top of a UTXO cryptocurrency, two contracts are needed, a 
 
 \subsection{Timebanks}
 
+\section{\cc{} Drawbacks}
+
 \section{Possible Extensions}
 
 
 \newpage
 \bibliography{sources}
 \bibliographystyle{ieeetr} 
-
-\newpage
-\appendix{ErgoHack goals}
-
-For the ErgoHack, the goal is to complete the paper, make contracts, tests, offchain trackers, testing transactions.
-
-The state before ErgoHack is corresponding to commit d1da4efeff5224de205990b4dd9cf5463d883266 (in https://github.com/kushti/chaincash ), and includes Introduction section draft in the paper, and basic modelling code for \cc{} entities in Scala.
 
 \end{document}
