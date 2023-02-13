@@ -13,7 +13,7 @@
 
     val history = SELF.R4[AvlTree].get
 
-    val selfInput = INPUTS(0) // todo: needed
+    val selfInput = INPUTS(0) // todo: is it needed?
 
     val action = getVar[Byte](0).get
 

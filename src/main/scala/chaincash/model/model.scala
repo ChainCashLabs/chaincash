@@ -1,7 +1,5 @@
 package chaincash.model
 
-import chaincash.*
-
 import scala.util.Random
 
 /**
