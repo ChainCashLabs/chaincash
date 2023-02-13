@@ -5,7 +5,7 @@
 
     // spend: full or with change
 
-    // redeem: 
+    // redeem:
 
     // to create a note, ...
 
@@ -13,8 +13,7 @@
 
     val history = SELF.R4[AvlTree].get
 
-    val selfInput = INPUTS(0)
-    val selfOutput = OUTPUTS(0)
+    val selfInput = INPUTS(0) // todo: needed
 
     val action = getVar[Byte](0).get
 
@@ -30,6 +29,8 @@
 
     if(action == 0) {
       // spending path
+
+      val selfOutput = OUTPUTS(0)
 
       val holderBytesHash = blake2b256(proveDlog(holder).propBytes)
 
@@ -78,26 +79,8 @@
       sigmaProp(selfInputCorrect && sameScript && insertionPerformed && properSignature && properReserve && nextHolderDefined && tokensPreserved)
     } else {
       // redemption path
-      val proof = getVar[Coll[Byte]](1).get
-      val value = history.get(reserveId, proof).get
 
-      val cBytes = value.slice(0, 32)
-      val sBytes = value.slice(32, 64)
-      val c = byteArrayToBigInt(cBytes)
-      val s = byteArrayToBigInt(sBytes)
-
-      val maxValueBytes = getVar[Coll[Byte]](2).get
-      val message = maxValueBytes ++ noteTokenId
-      val maxValue = byteArrayToLong(maxValueBytes)
-
-      val reservePubKey = getVar[GroupElement](3).get
-
-      val U = g.exp(s).multiply(reservePubKey.exp(c)).getEncoded // as a byte array
-
-      val properSignature =
-            (cBytes == blake2b256(U ++ message)) &&
-                reserve.propositionBytes == proveDlog(reservePubKey).propBytes &&
-                noteValue <= maxValue
+      // we just check current holder's signature here
 
       //todo: check that note token burnt
       //todo: check that another box with the same tree and tokens could not be spent
