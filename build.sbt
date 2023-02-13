@@ -7,7 +7,7 @@ version := "0.2"
 organization := "org.ergoplatform"
 scalaVersion := "2.12.17"
 
-unmanagedClasspath += baseDirectory.value / "contracts"
+unmanagedClasspath in Compile += baseDirectory.value / "contracts"
 
 resolvers ++= Seq(
   "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/",
@@ -18,6 +18,8 @@ resolvers ++= Seq(
   "Nexus Releases" at "https://s01.oss.sonatype.org/content/repositories/releases",
   "Nexus Snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots"
 )
+
+libraryDependencies += "io.github.getblok-io" %% "getblok_plasma" % "1.0.1"
 
 // ergoscript-simulation dependencies
 libraryDependencies ++= Seq(
