@@ -7,6 +7,7 @@ version := "0.2"
 organization := "org.ergoplatform"
 scalaVersion := "2.12.17"
 
+unmanagedClasspath += baseDirectory.value / "contracts"
 
 resolvers ++= Seq(
   "Sonatype Releases" at "https://oss.sonatype.org/content/repositories/releases/",
@@ -18,6 +19,7 @@ resolvers ++= Seq(
   "Nexus Snapshots" at "https://s01.oss.sonatype.org/content/repositories/snapshots"
 )
 
+// ergoscript-simulation dependencies
 libraryDependencies ++= Seq(
   ("org.scorexfoundation"         %% "sigma-state"     % "5.0.5").exclude("org.typelevel", "cats-kernel_2.12"),
   "org.typelevel"                 %% "cats-core"       % "2.6.1",
@@ -33,6 +35,14 @@ libraryDependencies ++= Seq(
   compilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1")
 )
 
+// kiosk dependencies
+libraryDependencies ++= Seq(
+  "io.github.ergoplatform" %% "kiosk" % "1.0",
+  "com.squareup.okhttp3" % "mockwebserver" % "3.14.9",
+  "org.scalatest" %% "scalatest" % "3.0.8" ,
+  "org.scalacheck" %% "scalacheck" % "1.14.+" ,
+  "org.mockito" % "mockito-core" % "2.23.4"
+)
 
 assembly / assemblyJarName := s"${name.value}-${version.value}.jar"
 

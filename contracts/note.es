@@ -85,7 +85,7 @@
       //todo: check that note token burnt
       //todo: check that another box with the same tree and tokens could not be spent
 
-      sigmaProp(selfInputCorrect && properSignature && proveDlog(holder))
+      sigmaProp(selfInputCorrect && proveDlog(holder))
     }
 
 }
