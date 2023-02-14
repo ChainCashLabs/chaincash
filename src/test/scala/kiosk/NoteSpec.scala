@@ -23,7 +23,8 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
 
   val ergoClient = createMockedErgoClient(MockData(Nil, Nil))
 
-  val minValue = 1000000000
+  val minValue = 1000000000L
+  val feeValue = 1000000L
 
   val fakeTxId1 = "f9e5ce5aa0d95f5d54a7bc89c46730d9662397067250aa18a0039631c0f5b809"
   val fakeTxId2 = "f9e5ce5aa0d95f5d54a7bc89c46730d9662397067250aa18a0039631c0f5b808"
@@ -39,15 +40,15 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         ctx
           .newTxBuilder()
           .outBoxBuilder
-          .value(minValue)
+          .value(minValue + feeValue)
           .tokens(new ErgoToken(noteTokenId, 1))
           .registers(Constants.emptyTreeErgoValue, KioskGroupElement(changePKasGE).getErgoValue)
-          .contract(ctx.compileContract(ConstantsBuilder.empty(), ChaincashSpec.noteContract))
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.noteContract))
           .build()
           .convertToInputWith(fakeTxId4, fakeIndex)
 
       val noteOutput = KioskBox(
-        ChaincashSpec.noteAddress,
+        Constants.noteAddress,
         minValue,
         registers = Array(new KioskAvlTree(Constants.emptyTree), KioskGroupElement(changePKasGE)),
         tokens = Array((noteTokenId, 1))
@@ -60,7 +61,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         inputs,
         dataInputs,
         outputs,
-        fee = 1000000L,
+        fee = feeValue,
         changeAddress,
         Array[String](),
         Array[DhtData](),
