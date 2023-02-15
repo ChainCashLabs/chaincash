@@ -3,18 +3,22 @@ package kiosk
 import chaincash.contracts.{ChaincashSpec, Constants}
 import chaincash.offchain.OffchainUtils
 import com.google.common.primitives.Longs
+import io.getblok.getblok_plasma.PlasmaParameters
+import io.getblok.getblok_plasma.collections.PlasmaMap
 import kiosk.ErgoUtil.randBigInt
 import kiosk.ergo.{DhtData, KioskAvlTree, KioskBoolean, KioskBox, KioskGroupElement, KioskInt, KioskLong}
 import kiosk.script.ScriptUtil
 import kiosk.tx.TxUtil
 import org.ergoplatform.P2PKAddress
-import org.ergoplatform.appkit.{BlockchainContext, ConstantsBuilder, ContextVar, ErgoToken, ErgoValue, HttpClientTesting, InputBox}
+import org.ergoplatform.appkit.{BlockchainContext, ConstantsBuilder, ContextVar, ErgoId, ErgoToken, ErgoValue, HttpClientTesting, InputBox}
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import scorex.util.encode.Base16
+import sigmastate.{AvlTreeFlags, Values}
 import sigmastate.basics.DLogProtocol.ProveDlog
 import sigmastate.eval.CGroupElement
 import sigmastate.eval._
+import sigmastate.serialization.GroupElementSerializer
 
 class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenPropertyChecks with HttpClientTesting {
 
@@ -25,6 +29,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
   val noteTokenId = "4b2d8b7beb3eaac8234d9e61792d270898a43934d6a27275e4f3a044609c9f2a"
 
   val reserveNFT = "161A3A5250655368566D597133743677397A24432646294A404D635166546A57"
+  val reserveNFTBytes = Base16.decode(reserveNFT).get
 
   val holderSecret = randBigInt
   val holderPk = Constants.g.exp(holderSecret.bigInteger)
@@ -50,6 +55,12 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val msg: Array[Byte] = Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
       val sig = OffchainUtils.sign(msg, holderSecret)
 
+      val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+      val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray
+      val insertRes = plasmaMap.insert(reserveNFTBytes -> sigBytes)
+      val insertProof = insertRes.proof
+      val outTree = plasmaMap.ergoValue.getValue
+
       val noteInput =
         ctx
           .newTxBuilder()
@@ -63,7 +74,8 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .withContextVars(
             new ContextVar(0, ErgoValue.of(0: Byte)),
             new ContextVar(1, ErgoValue.of(sig._1)),
-            new ContextVar(2, ErgoValue.of(sig._2.toByteArray))
+            new ContextVar(2, ErgoValue.of(sig._2.toByteArray)),
+            new ContextVar(3, ErgoValue.of(insertProof.bytes))
           )
 
       val reserveDataInput =
@@ -72,6 +84,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .outBoxBuilder
           .value(minValue)
           .tokens(new ErgoToken(reserveNFT, 1))
+          .registers(KioskGroupElement(holderPk).getErgoValue)
           .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.reserveContract))
           .build()
           .convertToInputWith(fakeTxId2, fakeIndex)
@@ -79,7 +92,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val noteOutput = KioskBox(
         Constants.noteAddress,
         minValue,
-        registers = Array(new KioskAvlTree(Constants.emptyTree), KioskGroupElement(holderPk)),
+        registers = Array(new KioskAvlTree(outTree), KioskGroupElement(holderPk)),
         tokens = Array((noteTokenId, 1))
       )
 

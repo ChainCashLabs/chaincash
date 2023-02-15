@@ -9,6 +9,7 @@
     //  - top up
     //  - unlock refund, lock refund, refund
 
+    val ownerKey = SELF.R4[GroupElement].get // used in notes and unlock/lock/refund actions
     val selfOut = OUTPUTS(0)
     val selfPreserved = selfOut.propositionBytes == SELF.propositionBytes && selfOut.tokens == SELF.tokens
 

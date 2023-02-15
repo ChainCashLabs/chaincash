@@ -11,13 +11,13 @@ import sigmastate.{AvlTreeFlags, Values}
 import special.sigma.{AvlTree, GroupElement}
 
 object Constants {
-  private val plasmaMap = new PlasmaMap[ErgoId, Values.ErgoTree](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+  private val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
   val emptyTreeErgoValue: ErgoValue[AvlTree] = plasmaMap.ergoValue
   val emptyTree: AvlTree = emptyTreeErgoValue.getValue
 
   val g: GroupElement = CGroupElement(CryptoConstants.dlogGroup.generator)
 
-  val noteContract = scala.io.Source.fromFile("contracts/test.es", "utf-8").getLines.mkString("\n")
+  val noteContract = scala.io.Source.fromFile("contracts/note.es", "utf-8").getLines.mkString("\n")
 
   val reserveContract = scala.io.Source.fromFile("contracts/reserve.es", "utf-8").getLines.mkString("\n")
 

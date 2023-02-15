@@ -32,8 +32,6 @@
 
       val selfOutput = OUTPUTS(0)
 
-      val holderBytesHash = blake2b256(proveDlog(holder).propBytes)
-
       val noteValueBytes = longToByteArray(noteValue)
       val message = noteValueBytes ++ noteTokenId
 
@@ -52,7 +50,7 @@
       // Signature is valid if g^z = a * x^e
       val properSignature = g.exp(z) == a.multiply(holder.exp(eInt))
 
-      val properReserve = blake2b256(reserve.propositionBytes) == holderBytesHash
+      val properReserve = holder == reserve.R4[GroupElement].get
 
       val leafValue = aBytes ++ zBytes
       val keyVal = (reserveId, leafValue)
@@ -64,7 +62,7 @@
 
       val insertionPerformed = selfOutput.R4[AvlTree].get.digest == outputDigest
       val sameScript = selfOutput.propositionBytes == SELF.propositionBytes
-      val nextHolderDefined = selfOutput.R5[AvlTree].isDefined
+      val nextHolderDefined = selfOutput.R5[GroupElement].isDefined
 
       val changeIdx = getVar[Byte](4)
       val tokensPreserved = if(changeIdx.isDefined) {

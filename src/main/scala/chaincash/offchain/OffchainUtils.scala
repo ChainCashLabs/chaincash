@@ -15,13 +15,19 @@ import scala.annotation.tailrec
 object OffchainUtils {
   import Constants.g
 
+  @tailrec
   def sign(msg: Array[Byte], sk: BigInt): (GroupElement, BigInt) = {
     val r = randBigInt
     println(s"secret: ${r.toString(16)}")
     val g: GroupElement = CryptoConstants.dlogGroup.generator
     val a: GroupElement = g.exp(r.bigInteger)
     val z = (r + sk * BigInt(scorex.crypto.hash.Blake2b256(msg))) % CryptoConstants.groupOrder
-    (a, z)
+
+    if(z.bitLength <= 255) {
+      (a, z)
+    } else {
+      sign(msg,sk)
+    }
   }
 
   @tailrec
