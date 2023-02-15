@@ -4,10 +4,10 @@ import io.getblok.getblok_plasma.PlasmaParameters
 import io.getblok.getblok_plasma.collections.PlasmaMap
 import kiosk.encoding.ScalaErgoConverters.{getAddressFromErgoTree, getStringFromAddress}
 import kiosk.script.ScriptUtil
-import org.ergoplatform.appkit.{ErgoId, ErgoValue}
+import org.ergoplatform.appkit.ErgoValue
 import sigmastate.eval.CGroupElement
 import sigmastate.interpreter.CryptoConstants
-import sigmastate.{AvlTreeFlags, Values}
+import sigmastate.AvlTreeFlags
 import special.sigma.{AvlTree, GroupElement}
 
 object Constants {

@@ -11,7 +11,10 @@
 
     val ownerKey = SELF.R4[GroupElement].get // used in notes and unlock/lock/refund actions
     val selfOut = OUTPUTS(0)
-    val selfPreserved = selfOut.propositionBytes == SELF.propositionBytes && selfOut.tokens == SELF.tokens
+    val selfPreserved =
+            selfOut.propositionBytes == SELF.propositionBytes &&
+            selfOut.tokens == SELF.tokens &&
+            selfOut.R4[GroupElement].get == SELF.R4[GroupElement].get
 
     val action = getVar[Byte](0).get
 
@@ -28,6 +31,7 @@
       val reserveId = SELF.tokens(0)._1
 
       val goldOracle = CONTEXT.dataInputs(0)
+      val properOracle = goldOracle.tokens(0)._1 == fromBase58("2DfY1K4rW9zPVaQgaDp2KXgnErjxKPbbKF5mq1851MJE")
       val oracleRate = goldOracle.R4[Long].get / 1000000 // normalize to nanoerg per mg of gold
       val tokensRedeemed = noteInput.tokens(0)._2 // 1 token == 1 mg of gold
       val nanoergsToRedeem = tokensRedeemed * oracleRate
@@ -56,7 +60,7 @@
                              SELF.propositionBytes == proveDlog(reservePubKey).propBytes &&
                              noteValue <= maxValue
 
-      sigmaProp(selfPreserved && redeemCorrect && properSignature)
+      sigmaProp(selfPreserved && redeemCorrect && properSignature && properOracle)
     } else if (action == 1) {
       // top up
       sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added
