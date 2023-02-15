@@ -2,7 +2,7 @@ package chaincash.contracts
 
 import Constants._
 
-object ChaincashSpec extends App {
+object ContractsPrinter extends App {
 
   println("Note contract address: " + noteAddress)
 

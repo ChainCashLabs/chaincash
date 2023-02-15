@@ -4,6 +4,7 @@ import okhttp3.HttpUrl;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.ergoplatform.appkit.impl.BlockchainContextBuilderImpl;
+import org.ergoplatform.appkit.impl.NodeAndExplorerDataSourceImpl;
 import org.ergoplatform.explorer.client.ExplorerApiClient;
 import org.ergoplatform.restapi.client.ApiClient;
 
@@ -19,9 +20,33 @@ public class FileMockedErgoClient implements MockedErgoClient {
     private final List<String> _nodeResponses;
     private final List<String> _explorerResponses;
 
+    private ApiClient client;
+    private ExplorerApiClient explorerClient;
+    private NodeAndExplorerDataSourceImpl dataSource;
+
     public FileMockedErgoClient(List<String> nodeResponses, List<String> explorerResponses) {
         _nodeResponses = nodeResponses;
         _explorerResponses = explorerResponses;
+
+        MockWebServer node = new MockWebServer();
+        enqueueResponses(node, _nodeResponses);
+
+        MockWebServer explorer = new MockWebServer();
+        enqueueResponses(explorer, _explorerResponses);
+
+        try {
+            node.start();
+            explorer.start();
+        } catch (IOException e) {
+            throw new ErgoClientException("Cannot start server " + node.toString(), e);
+        }
+
+        HttpUrl baseUrl = node.url("/");
+        client = new ApiClient(baseUrl.toString());
+        HttpUrl explorerBaseUrl = explorer.url("/");
+        explorerClient = new ExplorerApiClient(explorerBaseUrl.toString());
+        dataSource = new NodeAndExplorerDataSourceImpl(client, explorerClient);
+
     }
 
     @Override
@@ -43,36 +68,19 @@ public class FileMockedErgoClient implements MockedErgoClient {
     }
 
     @Override
+    public BlockchainDataSource getDataSource() {
+        return dataSource;
+    }
+
+    @Override
     public <T> T execute(Function<BlockchainContext, T> action) {
-        MockWebServer node = new MockWebServer();
-        enqueueResponses(node, _nodeResponses);
-
-        MockWebServer explorer = new MockWebServer();
-        enqueueResponses(explorer, _explorerResponses);
-
-        try {
-            node.start();
-            explorer.start();
-        } catch (IOException e) {
-            throw new ErgoClientException("Cannot start server " + node.toString(), e);
-        }
-
-        HttpUrl baseUrl = node.url("/");
-        ApiClient client = new ApiClient(baseUrl.toString());
-        HttpUrl explorerBaseUrl = explorer.url("/");
-        ExplorerApiClient explorerClient = new ExplorerApiClient(explorerBaseUrl.toString());
 
         BlockchainContext ctx =
-                new BlockchainContextBuilderImpl(client, explorerClient, NetworkType.MAINNET).build();
+                new BlockchainContextBuilderImpl(dataSource, NetworkType.MAINNET).build();
 
         T res = action.apply(ctx);
 
-        try {
-            explorer.shutdown();
-            node.shutdown();
-        } catch (IOException e) {
-            throw new ErgoClientException("Cannot shutdown server " + node.toString(), e);
-        }
+
         return res;
     }
 }

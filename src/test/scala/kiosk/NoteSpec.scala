@@ -1,24 +1,26 @@
 package kiosk
 
-import chaincash.contracts.{ChaincashSpec, Constants}
+import chaincash.contracts.Constants
 import chaincash.offchain.OffchainUtils
 import com.google.common.primitives.Longs
 import io.getblok.getblok_plasma.PlasmaParameters
 import io.getblok.getblok_plasma.collections.PlasmaMap
 import kiosk.ErgoUtil.randBigInt
-import kiosk.ergo.{DhtData, KioskAvlTree, KioskBoolean, KioskBox, KioskGroupElement, KioskInt, KioskLong}
+import kiosk.encoding.ScalaErgoConverters.getAddressFromString
+import kiosk.ergo.{KioskAvlTree, KioskBox, KioskGroupElement, KioskType, Token, decodeBigInt}
 import kiosk.script.ScriptUtil
-import kiosk.tx.TxUtil
 import org.ergoplatform.P2PKAddress
-import org.ergoplatform.appkit.{BlockchainContext, ConstantsBuilder, ContextVar, ErgoId, ErgoToken, ErgoValue, HttpClientTesting, InputBox}
+import org.ergoplatform.appkit.impl.ErgoTreeContract
+import org.ergoplatform.appkit.{BlockchainContext, ConstantsBuilder, ContextVar, ErgoToken, ErgoValue, HttpClientTesting, InputBox, NetworkType, OutBox, OutBoxBuilder, SignedTransaction}
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
-import scorex.crypto.encode.{Base58, Base64}
 import scorex.util.encode.Base16
-import sigmastate.{AvlTreeFlags, Values}
+import sigmastate.AvlTreeFlags
 import sigmastate.basics.DLogProtocol.ProveDlog
 import sigmastate.eval._
 import sigmastate.serialization.GroupElementSerializer
+
+import java.util
 
 class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenPropertyChecks with HttpClientTesting {
 
@@ -38,8 +40,6 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
   val holderPk = Constants.g.exp(holderSecret.bigInteger)
   val changeAddress = P2PKAddress(ProveDlog(holderPk)).toString()
 
-  val ergoClient = createMockedErgoClient(MockData(Nil, Nil))
-
   val minValue = 1000000000L
   val feeValue = 1000000L
 
@@ -52,8 +52,80 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
   val fakeTxId5 = "f9e5ce5aa0d95f5d54a7bc89c46730d9662397067250aa18a0039631c0f5b105"
   val fakeIndex = 1.toShort
 
+  private def addTokens(outBoxBuilder: OutBoxBuilder)(tokens: Seq[Token]) = {
+    if (tokens.isEmpty) outBoxBuilder
+    else {
+      outBoxBuilder.tokens(tokens.map { token =>
+        val (id, value) = token
+        new ErgoToken(id, value)
+      }: _*)
+    }
+  }
+
+  private def addRegisters(
+                            outBoxBuilder: OutBoxBuilder
+                          )(registers: Array[KioskType[_]]) = {
+    if (registers.isEmpty) outBoxBuilder
+    else {
+      outBoxBuilder.registers(registers.map(_.getErgoValue): _*)
+    }
+  }
+
+  def createTx(
+                inputBoxes: Array[InputBox],
+                dataInputs: Array[InputBox],
+                boxesToCreate: Array[KioskBox],
+                fee: Long,
+                changeAddress: String,
+                proveDlogSecrets: Array[String],
+                broadcast: Boolean
+              )(implicit ctx: BlockchainContext): SignedTransaction = {
+    val txB = ctx.newTxBuilder
+    val outputBoxes: Array[OutBox] = boxesToCreate.map { box =>
+      val outBoxBuilder: OutBoxBuilder = txB
+        .outBoxBuilder()
+        .value(box.value)
+        .creationHeight(box.creationHeight.getOrElse(ctx.getHeight))
+        .contract(
+          new ErgoTreeContract(getAddressFromString(box.address).script, NetworkType.MAINNET)
+        )
+      val outBoxBuilderWithTokens: OutBoxBuilder =
+        addTokens(outBoxBuilder)(box.tokens)
+      val outBox: OutBox =
+        addRegisters(outBoxBuilderWithTokens)(box.registers).build
+      outBox
+    }
+    val inputs = new util.ArrayList[InputBox]()
+
+    inputBoxes.foreach(inputs.add)
+
+    val dataInputBoxes = new util.ArrayList[InputBox]()
+
+    dataInputs.foreach(dataInputBoxes.add)
+
+    val txToSign = ctx
+      .newTxBuilder()
+      .boxesToSpend(inputs)
+      .withDataInputs(dataInputBoxes)
+      .outputs(outputBoxes: _*)
+      .fee(fee)
+      .sendChangeTo(getAddressFromString(changeAddress))
+      .build()
+
+    val proveDlogSecretsBigInt = proveDlogSecrets.map(decodeBigInt)
+
+    val dlogProver = proveDlogSecretsBigInt.foldLeft(ctx.newProverBuilder()) {
+      case (oldProverBuilder, newDlogSecret) =>
+        oldProverBuilder.withDLogSecret(newDlogSecret.bigInteger)
+    }
+
+    val signedTx = dlogProver.build().sign(txToSign)
+    if (broadcast) ctx.sendTransaction(signedTx)
+    signedTx
+  }
+
   property("spending should work - no change") {
-    ergoClient.execute { implicit ctx: BlockchainContext =>
+    createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
 
       val msg: Array[Byte] = Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
       val sig = OffchainUtils.sign(msg, holderSecret)
@@ -104,14 +176,13 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val outputs = Array[KioskBox](noteOutput)
 
       noException shouldBe thrownBy {
-        TxUtil.createTx(
+        createTx(
           inputs,
           dataInputs,
           outputs,
           fee = feeValue,
           changeAddress,
           Array[String](),
-          Array[DhtData](),
           false
         )
       }
@@ -119,7 +190,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
   }
 
   property("redemption should work") {
-    ergoClient.execute { implicit ctx: BlockchainContext =>
+    createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
       val msg: Array[Byte] = Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
       val sig = OffchainUtils.sign(msg, holderSecret)
 
@@ -128,6 +199,9 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val insertRes = plasmaMap.insert(reserveNFTBytes -> sigBytes)
       val insertProof = insertRes.proof
       val outTree = plasmaMap.ergoValue.getValue
+
+      val lookupRes = plasmaMap.lookUp(reserveNFTBytes)
+      val lookupProof = lookupRes.proof
 
       val noteInput =
         ctx
@@ -141,6 +215,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .convertToInputWith(fakeTxId1, fakeIndex)
           .withContextVars(
             new ContextVar(0, ErgoValue.of(1: Byte)),
+            // todo: context vars for another path here, why?
             new ContextVar(1, ErgoValue.of(sig._1)),
             new ContextVar(2, ErgoValue.of(sig._2.toByteArray)),
             new ContextVar(3, ErgoValue.of(insertProof.bytes))
@@ -152,31 +227,31 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .outBoxBuilder
           .value(minValue)
           .tokens(new ErgoToken(reserveNFTBytes, 1))
-          .registers(new KioskAvlTree(outTree).getErgoValue, KioskGroupElement(holderPk).getErgoValue)
-          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.noteContract))
+          .registers(KioskGroupElement(holderPk).getErgoValue)
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.reserveContract))
           .build()
           .convertToInputWith(fakeTxId2, fakeIndex)
           .withContextVars(
-            new ContextVar(0, ErgoValue.of(1: Byte)),
-            new ContextVar(1, ErgoValue.of(sig._1)),
-            new ContextVar(2, ErgoValue.of(sig._2.toByteArray)),
-            new ContextVar(3, ErgoValue.of(insertProof.bytes))
+            new ContextVar(0, ErgoValue.of(0: Byte)),
+            new ContextVar(1, ErgoValue.of(lookupProof.bytes)),
+            new ContextVar(2, ErgoValue.of(Longs.toByteArray(noteValue)))
           )
 
+      val oracleRate = 500000L // nanoErg per mg
       val oracleDataInput =
         ctx
           .newTxBuilder()
           .outBoxBuilder
           .value(minValue)
           .tokens(new ErgoToken(oracleNFTBytes, 1))
-          .registers(ErgoValue.of(500000L))
+          .registers(ErgoValue.of(oracleRate * 1000000))
           .contract(ctx.compileContract(ConstantsBuilder.empty(), "{false}"))
           .build()
           .convertToInputWith(fakeTxId3, fakeIndex)
 
       val reserveOutput = KioskBox(
         Constants.reserveAddress,
-        minValue,
+        minValue - oracleRate,
         registers = Array(KioskGroupElement(holderPk)),
         tokens = Array((reserveNFT, 1))
       )
@@ -185,14 +260,13 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val dataInputs = Array[InputBox](oracleDataInput)
       val outputs = Array[KioskBox](reserveOutput)
 
-      TxUtil.createTx(
+      createTx(
         inputs,
         dataInputs,
         outputs,
-        fee = feeValue,
+        fee = feeValue ,
         changeAddress,
         Array[String](holderSecret.toString()),
-        Array[DhtData](),
         false
       )
     }

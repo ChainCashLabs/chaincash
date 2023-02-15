@@ -24,7 +24,9 @@ libraryDependencies += "io.github.getblok-io" %% "getblok_plasma" % "1.0.1"
 
 // kiosk dependencies
 libraryDependencies ++= Seq(
-  "io.github.ergoplatform" %% "kiosk" % "1.0",
+  ("io.github.ergoplatform" %% "kiosk" % "1.0").exclude("org.ergoplatform", "ergo-appkit_2.12"),
+  // https://mvnrepository.com/artifact/org.ergoplatform/ergo-appkit
+  "org.ergoplatform" %% "ergo-appkit" % "5.0.0",
   "com.squareup.okhttp3" % "mockwebserver" % "3.14.9",
   "org.scalatest" %% "scalatest" % "3.0.8" ,
   "org.scalacheck" %% "scalacheck" % "1.14.+" ,

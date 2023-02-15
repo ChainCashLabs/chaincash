@@ -49,15 +49,12 @@
       val message = maxValueBytes ++ noteTokenId
       val maxValue = byteArrayToLong(maxValueBytes)
 
-      val reservePubKey = getVar[GroupElement](3).get
-
       // Computing challenge
       val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
       val eInt = byteArrayToBigInt(e) // challenge as big integer
 
       // Signature is valid if g^z = a * x^e
-      val properSignature = (g.exp(z) == a.multiply(reservePubKey.exp(eInt))) &&
-                             SELF.propositionBytes == proveDlog(reservePubKey).propBytes &&
+      val properSignature = (g.exp(z) == a.multiply(ownerKey.exp(eInt))) &&
                              noteValue <= maxValue
 
       sigmaProp(selfPreserved && redeemCorrect && properSignature && properOracle)
