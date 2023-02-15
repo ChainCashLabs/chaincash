@@ -13,8 +13,6 @@
 
     val history = SELF.R4[AvlTree].get
 
-    val selfInput = INPUTS(0) // todo: is it needed?
-
     val action = getVar[Byte](0).get
 
     val noteTokenId = SELF.tokens(0)._1
@@ -24,8 +22,6 @@
     val reserveId = reserve.tokens(0)._1
 
     val holder = SELF.R5[GroupElement].get
-
-    val selfInputCorrect = (SELF.id == selfInput.id) // todo: needed ?
 
     if(action == 0) {
       // spending path
@@ -76,7 +72,7 @@
         selfOutput.tokens(0) == SELF.tokens(0)
       }
 
-      sigmaProp(selfInputCorrect && sameScript && insertionPerformed && properSignature && properReserve && nextHolderDefined && tokensPreserved)
+      sigmaProp(sameScript && insertionPerformed && properSignature && properReserve && nextHolderDefined && tokensPreserved)
     } else {
       // redemption path
 
@@ -85,7 +81,7 @@
       //todo: check that note token burnt
       //todo: check that another box with the same tree and tokens could not be spent
 
-      sigmaProp(selfInputCorrect && proveDlog(holder))
+      proveDlog(holder)
     }
 
 }
