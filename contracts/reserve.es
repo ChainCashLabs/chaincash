@@ -35,10 +35,10 @@
       val proof = getVar[Coll[Byte]](1).get
       val value = history.get(reserveId, proof).get
 
-      val cBytes = value.slice(0, 32)
-      val sBytes = value.slice(32, 64)
-      val c = byteArrayToBigInt(cBytes)
-      val s = byteArrayToBigInt(sBytes)
+      val aBytes = value.slice(0, 33)
+      val zBytes = value.slice(33, value.size)
+      val a = decodePoint(aBytes)
+      val z = byteArrayToBigInt(zBytes)
 
       val maxValueBytes = getVar[Coll[Byte]](2).get
       val message = maxValueBytes ++ noteTokenId
@@ -46,12 +46,14 @@
 
       val reservePubKey = getVar[GroupElement](3).get
 
-      val U = g.exp(s).multiply(reservePubKey.exp(c)).getEncoded // as a byte array
+      // Computing challenge
+      val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
+      val eInt = byteArrayToBigInt(e) // challenge as big integer
 
-      val properSignature =
-        (cBytes == blake2b256(U ++ message)) &&
-            SELF.propositionBytes == proveDlog(reservePubKey).propBytes &&
-            noteValue <= maxValue
+      // Signature is valid if g^z = a * x^e
+      val properSignature = (g.exp(z) == a.multiply(reservePubKey.exp(eInt))) &&
+                             SELF.propositionBytes == proveDlog(reservePubKey).propBytes &&
+                             noteValue <= maxValue
 
       sigmaProp(selfPreserved && redeemCorrect && properSignature)
     } else if (action == 1) {

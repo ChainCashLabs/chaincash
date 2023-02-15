@@ -25,7 +25,7 @@
 
     val holder = SELF.R5[GroupElement].get
 
-    val selfInputCorrect = (SELF.id == selfInput.id)
+    val selfInputCorrect = (SELF.id == selfInput.id) // todo: needed ?
 
     if(action == 0) {
       // spending path
@@ -37,22 +37,24 @@
       val noteValueBytes = longToByteArray(noteValue)
       val message = noteValueBytes ++ noteTokenId
 
-      // c of signature in (c, s)
-      val cBytes = getVar[Coll[Byte]](1).get
-      val c = byteArrayToBigInt(cBytes)
+      // Computing challenge
+      val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
+      val eInt = byteArrayToBigInt(e) // challenge as big integer
 
-      // s of signature in (c, s)
-      val sBytes = getVar[Coll[Byte]](2).get
-      val s = byteArrayToBigInt(sBytes)
+      // a of signature in (a, z)
+      val a = getVar[GroupElement](1).get
+      val aBytes = a.getEncoded
 
-      val U = g.exp(s).multiply(holder.exp(c)).getEncoded // as a byte array
+      // z of signature in (a, z)
+      val zBytes = getVar[Coll[Byte]](2).get
+      val z = byteArrayToBigInt(zBytes)
 
-      val properLength = (cBytes.size == 32) && (sBytes.size == 32)
-      val properSignature = properLength && (cBytes == blake2b256(U ++ message))
+      // Signature is valid if g^z = a * x^e
+      val properSignature = g.exp(z) == a.multiply(holder.exp(eInt))
 
       val properReserve = blake2b256(reserve.propositionBytes) == holderBytesHash
 
-      val leafValue = cBytes ++ sBytes
+      val leafValue = aBytes ++ zBytes
       val keyVal = (reserveId, leafValue)
       val proof = getVar[Coll[Byte]](3).get
 
