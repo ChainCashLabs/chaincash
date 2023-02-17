@@ -1,7 +1,7 @@
 package kiosk
 
 import chaincash.contracts.Constants
-import chaincash.offchain.OffchainUtils
+import chaincash.offchain.SigUtils
 import com.google.common.primitives.Longs
 import io.getblok.getblok_plasma.PlasmaParameters
 import io.getblok.getblok_plasma.collections.PlasmaMap
@@ -128,7 +128,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
     createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
 
       val msg: Array[Byte] = Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
-      val sig = OffchainUtils.sign(msg, holderSecret)
+      val sig = SigUtils.sign(msg, holderSecret)
 
       val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
       val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray
@@ -165,7 +165,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .convertToInputWith(fakeTxId2, fakeIndex)
 
       val noteOutput = KioskBox(
-        Constants.noteAddress,
+        Constants.noteAddress.toString,
         minValue,
         registers = Array(new KioskAvlTree(outTree), KioskGroupElement(holderPk)),
         tokens = Array((noteTokenId, 1))
@@ -192,7 +192,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
   property("redemption should work") {
     createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
       val msg: Array[Byte] = Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
-      val sig = OffchainUtils.sign(msg, holderSecret)
+      val sig = SigUtils.sign(msg, holderSecret)
 
       val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
       val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray
@@ -250,7 +250,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .convertToInputWith(fakeTxId3, fakeIndex)
 
       val reserveOutput = KioskBox(
-        Constants.reserveAddress,
+        Constants.reserveAddress.toString,
         minValue - oracleRate,
         registers = Array(KioskGroupElement(holderPk)),
         tokens = Array((reserveNFT, 1))

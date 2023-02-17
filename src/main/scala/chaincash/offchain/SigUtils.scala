@@ -12,8 +12,7 @@ import sigmastate.serialization.GroupElementSerializer
 
 import scala.annotation.tailrec
 
-object OffchainUtils {
-  import Constants.g
+object SigUtils {
 
   @tailrec
   def sign(msg: Array[Byte], sk: BigInt): (GroupElement, BigInt) = {
@@ -30,6 +29,7 @@ object OffchainUtils {
     }
   }
 
+  /* todo: remove
   @tailrec
   def signOld(msg: Array[Byte], sk: BigInt): (BigInt, BigInt) = {
     val r = randBigInt
@@ -50,11 +50,12 @@ object OffchainUtils {
     val s = signature._2
     val U = g.exp(s.bigInteger).multiply(pk.exp(c.bigInteger))
     c == BigInt(Blake2b256.hash(GroupElementSerializer.toBytes(U) ++ msg))
-  }
+  } */
+
 }
 
 object SigTester extends App {
-  import OffchainUtils._
+  import SigUtils._
   import Constants.g
 
   val sk = randBigInt
