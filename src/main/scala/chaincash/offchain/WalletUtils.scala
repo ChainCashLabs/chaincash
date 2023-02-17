@@ -22,7 +22,8 @@ trait WalletUtils extends JsonCodecs {
     val boxesUnspentUrl = s"$serverUrl/wallet/status"
     val statusJson = parse(HttpUtils.getJsonAsString(boxesUnspentUrl)).toOption.get
     val addrStrOpt = statusJson.asObject.get.apply("changeAddress").flatMap(_.asString)
-    val addrOpt = addrStrOpt.map(s => ErgoAddressEncoder.Mainnet.fromString(s).get.asInstanceOf[P2PKAddress])
+    val eae = new ErgoAddressEncoder(ErgoAddressEncoder.MainnetNetworkPrefix)
+    val addrOpt = addrStrOpt.map(s => eae.fromString(s).get.asInstanceOf[P2PKAddress])
     addrOpt.get
   }
 

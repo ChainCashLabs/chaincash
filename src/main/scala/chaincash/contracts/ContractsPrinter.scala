@@ -13,9 +13,8 @@ object ContractsPrinter extends App {
   println(s"Reserve contract address: $reserveAddress")
 
 
-  val noteScriptBa = ByteArrayConstant(ValueSerializer.serialize(noteAddress.script.toProposition(replaceConstants = true).propBytes))
-  val reserveScriptBa = ByteArrayConstant(ValueSerializer.serialize(reserveAddress.script.toProposition(replaceConstants = true).propBytes))
-
+  val noteScriptBa = ByteArrayConstant(noteErgoTree.bytes)
+  val reserveScriptBa = ByteArrayConstant(reserveErgoTree.bytes)
 
 
   val noteContractTrackingRule = s"""
@@ -28,7 +27,7 @@ object ContractsPrinter extends App {
     |    "value": "${Base16.encode(ValueSerializer.serialize(noteScriptBa))}"
     |  }
     |}
-    """
+    """.stripMargin
 
   val reserveContractTrackingRule = s"""
     |

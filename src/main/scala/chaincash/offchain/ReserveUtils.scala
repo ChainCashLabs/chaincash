@@ -57,6 +57,6 @@ trait ReserveUtils extends WalletUtils with JsonCodecs {
 object Tester extends App with ReserveUtils {
   override val serverUrl: String = "http://127.0.0.1:9053"
 
-  println(createReserve(20000))
+  println(createReserve(2000000))
 
 }
