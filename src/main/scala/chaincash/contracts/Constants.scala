@@ -22,8 +22,8 @@ object Constants {
   val reserveContract = scala.io.Source.fromFile("contracts/reserve.es", "utf-8").getLines.mkString("\n")
 
   val noteErgoTree = ScriptUtil.compile(Map.empty, noteContract)
-  val noteAddress = getStringFromAddress(getAddressFromErgoTree(noteErgoTree))
+  val noteAddress = getAddressFromErgoTree(noteErgoTree)
 
   val reserveErgoTree = ScriptUtil.compile(Map.empty, reserveContract)
-  val reserveAddress = getStringFromAddress(getAddressFromErgoTree(reserveErgoTree))
+  val reserveAddress = getAddressFromErgoTree(reserveErgoTree)
 }

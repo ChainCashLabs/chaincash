@@ -33,6 +33,17 @@ libraryDependencies ++= Seq(
   "org.mockito" % "mockito-core" % "2.23.4"
 )
 
+val circeVersion = "0.12.3"
+libraryDependencies ++= Seq(
+  "io.circe" %% "circe-core",
+  "io.circe" %% "circe-generic",
+  "io.circe" %% "circe-parser"
+).map(_ % circeVersion)
+
+libraryDependencies ++= Seq(
+  "org.scalaj" %% "scalaj-http" % "2.3.0"
+)
+
 assembly / assemblyJarName := s"${name.value}-${version.value}.jar"
 
 assembly / assemblyMergeStrategy := {
