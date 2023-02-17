@@ -2,7 +2,7 @@ package chaincash.offchain
 
 import io.circe.syntax.EncoderOps
 import org.ergoplatform.ErgoBox.R4
-import org.ergoplatform.{ErgoBoxCandidate, JsonCodecs, UnsignedErgoLikeTransaction, UnsignedInput}
+import org.ergoplatform.{ErgoBoxCandidate, ErgoScriptPredef, JsonCodecs, P2PKAddress, UnsignedErgoLikeTransaction, UnsignedInput}
 import scorex.crypto.hash.Digest32
 import sigmastate.Values.GroupElementConstant
 import sigmastate.eval.Colls
@@ -14,7 +14,7 @@ trait ReserveUtils extends WalletUtils with JsonCodecs {
   import chaincash.contracts.Constants.reserveErgoTree
 
   // create reserve with `amount` nanoerg associated with `pubkey`
-  def createReserve(pubKey: GroupElement, amount: Long): Unit = {
+  def createReserve(pubKey: GroupElement, amount: Long, changeAddress: P2PKAddress): Unit = {
     val inputs = fetchInputs().take(60)
     val creationHeight = inputs.map(_.creationHeight).max
     val reserveInputNft = Digest32 @@ inputs.head.id
@@ -30,7 +30,8 @@ trait ReserveUtils extends WalletUtils with JsonCodecs {
     )
     val feeOut = createFeeOut(creationHeight)
     val changeOutOpt = if(inputValue > amount + feeValue) {
-      ???
+      val changeValue = inputValue - (amount + feeValue)
+      Some(new ErgoBoxCandidate(changeValue, changeAddress.script, creationHeight))
     } else {
       None
     }
@@ -40,4 +41,22 @@ trait ReserveUtils extends WalletUtils with JsonCodecs {
     val tx = new UnsignedErgoLikeTransaction(unsignedInputs.toIndexedSeq, IndexedSeq.empty, outs.toIndexedSeq)
     println(tx.asJson)
   }
+
+  def createReserve(address: P2PKAddress, amount: Long): Unit = {
+    createReserve(address.pubkey.value, amount, address)
+  }
+
+  def createReserve(amount: Long): Unit = {
+    val changeAddress = fetchChangeAddress()
+    createReserve(changeAddress, amount)
+  }
+
+}
+
+
+object Tester extends App with ReserveUtils {
+  override val serverUrl: String = "http://127.0.0.1:9053"
+
+  println(createReserve(20000))
+
 }

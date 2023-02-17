@@ -1,7 +1,7 @@
 package chaincash.offchain
 
 import io.circe.parser.parse
-import org.ergoplatform.{ErgoBox, ErgoBoxCandidate, ErgoScriptPredef, JsonCodecs}
+import org.ergoplatform.{ErgoAddressEncoder, ErgoBox, ErgoBoxCandidate, ErgoScriptPredef, JsonCodecs, P2PKAddress}
 
 trait WalletUtils extends JsonCodecs {
   val serverUrl: String
@@ -15,8 +15,15 @@ trait WalletUtils extends JsonCodecs {
   def fetchInputs(): Seq[ErgoBox] = {
     val boxesUnspentUrl = s"$serverUrl/wallet/boxes/unspent?minConfirmations=0&maxConfirmations=-1&minInclusionHeight=0&maxInclusionHeight=-1"
     val boxesUnspentJson = parse(HttpUtils.getJsonAsString(boxesUnspentUrl)).toOption.get
-
     boxesUnspentJson.\\("box").map(_.as[ErgoBox].toOption.get)
+  }
+
+  def fetchChangeAddress(): P2PKAddress = {
+    val boxesUnspentUrl = s"$serverUrl/wallet/status"
+    val statusJson = parse(HttpUtils.getJsonAsString(boxesUnspentUrl)).toOption.get
+    val addrStrOpt = statusJson.asObject.get.apply("changeAddress").flatMap(_.asString)
+    val addrOpt = addrStrOpt.map(s => ErgoAddressEncoder.Mainnet.fromString(s).get.asInstanceOf[P2PKAddress])
+    addrOpt.get
   }
 
 }

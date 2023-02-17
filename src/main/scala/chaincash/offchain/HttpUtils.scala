@@ -3,12 +3,13 @@ package chaincash.offchain
 import scalaj.http.{Http, HttpOptions}
 
 object HttpUtils {
+  val ApiKey = "hello" //todo: externalize
   def getJsonAsString(url: String): String = {
     Http(s"$url")
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
       .header("Charset", "UTF-8")
-      .header("api_key", "hello")
+      .header("api_key", ApiKey)
       .option(HttpOptions.readTimeout(10000))
       .asString
       .body
@@ -19,7 +20,7 @@ object HttpUtils {
       .header("Content-Type", "application/json")
       .header("Accept", "application/json")
       .header("Charset", "UTF-8")
-      .header("api_key", "hello")
+      .header("api_key", ApiKey)
       .option(HttpOptions.readTimeout(10000))
       .postData(data)
       .asString
