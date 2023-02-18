@@ -197,7 +197,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
       val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray
       val insertRes = plasmaMap.insert(reserveNFTBytes -> sigBytes)
-      val insertProof = insertRes.proof
+      val _ = insertRes.proof
       val outTree = plasmaMap.ergoValue.getValue
 
       val lookupRes = plasmaMap.lookUp(reserveNFTBytes)
@@ -216,9 +216,9 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .withContextVars(
             new ContextVar(0, ErgoValue.of(1: Byte)),
             // todo: context vars for another path here, why?
-            new ContextVar(1, ErgoValue.of(sig._1)),
-            new ContextVar(2, ErgoValue.of(sig._2.toByteArray)),
-            new ContextVar(3, ErgoValue.of(insertProof.bytes))
+            new ContextVar(1, ErgoValue.of(sig._1)), // todo: fake value
+            new ContextVar(2, ErgoValue.of(Array.emptyByteArray)),
+            new ContextVar(3, ErgoValue.of(Array.emptyByteArray))
           )
 
       val reserveInput =
