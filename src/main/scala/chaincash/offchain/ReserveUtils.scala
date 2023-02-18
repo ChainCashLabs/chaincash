@@ -2,7 +2,7 @@ package chaincash.offchain
 
 import io.circe.syntax.EncoderOps
 import org.ergoplatform.ErgoBox.R4
-import org.ergoplatform.{ErgoBoxCandidate, ErgoScriptPredef, JsonCodecs, P2PKAddress, UnsignedErgoLikeTransaction, UnsignedInput}
+import org.ergoplatform.{ErgoBoxCandidate, JsonCodecs, P2PKAddress, UnsignedErgoLikeTransaction, UnsignedInput}
 import scorex.crypto.hash.Digest32
 import sigmastate.Values.GroupElementConstant
 import sigmastate.eval.Colls
@@ -21,6 +21,7 @@ trait ReserveUtils extends WalletUtils with JsonCodecs {
 
     val inputValue = inputs.map(_.value).sum
     require(inputValue >= amount + feeValue)
+
     val reserveOut = new ErgoBoxCandidate(
       amount,
       reserveErgoTree,
@@ -50,13 +51,5 @@ trait ReserveUtils extends WalletUtils with JsonCodecs {
     val changeAddress = fetchChangeAddress()
     createReserve(changeAddress, amount)
   }
-
-}
-
-
-object Tester extends App with ReserveUtils {
-  override val serverUrl: String = "http://127.0.0.1:9053"
-
-  println(createReserve(2000000))
 
 }

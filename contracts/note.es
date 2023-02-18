@@ -9,6 +9,10 @@
 
     // to create a note, ...
 
+    // box data:
+    // R4 - history of ownership (under AVL+ tree)
+    // R5 - current holder of the note (public key given as a group element)
+
     val g: GroupElement = groupGenerator
 
     val history = SELF.R4[AvlTree].get
@@ -72,9 +76,13 @@
         selfOutput.tokens(0) == SELF.tokens(0)
       }
 
+      val valuePreserved = selfOutput.value >= SELF.value
+
       sigmaProp(sameScript && insertionPerformed && properSignature && properReserve && nextHolderDefined && tokensPreserved)
     } else {
       // redemption path
+
+      // todo: action == -1 to redeem, otherwise, action = output # ?
 
       // we just check current holder's signature here
 
