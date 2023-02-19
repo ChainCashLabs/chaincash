@@ -5,6 +5,9 @@
 scorex.yaml
 .bsp
 
+# swaydb files
+db/
+
 # scala build folders
 target
 

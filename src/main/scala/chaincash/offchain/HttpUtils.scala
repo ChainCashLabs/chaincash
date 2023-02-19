@@ -2,7 +2,7 @@ package chaincash.offchain
 
 import scalaj.http.{Http, HttpOptions}
 
-object HttpUtils {
+trait HttpUtils {
   val ApiKey = "hello" //todo: externalize
   def getJsonAsString(url: String): String = {
     Http(s"$url")

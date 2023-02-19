@@ -9,15 +9,13 @@ import scorex.util.encode.Base16
 import sigmastate.eval.CGroupElement
 import sigmastate.serialization.GroupElementSerializer
 import special.sigma.GroupElement
-import swaydb._
+import swaydb.{Glass, _}
 import swaydb.data.slice.Slice
 import swaydb.serializers.Default._
 import swaydb.serializers.Serializer
+import TrackingTypes._
 
 object DbEntities {
-  type ReserveNftId = ModifierId
-  type NoteTokenId = ModifierId
-  type UtxoId = ModifierId
 
   implicit object ModifierIdSerializer extends Serializer[ModifierId] {
     override def write(modifierId: ModifierId): Slice[Byte] =
@@ -57,8 +55,6 @@ object DbEntities {
       NoteData(box, history)
     }
   }
-
-  case class SigData(reserveId: ReserveNftId, valueBacked: Long, a: GroupElement, z: BigInt)
 
   object SigDataSerializer {
     def toBytes(sigData: SigData): Array[Byte] = {
@@ -103,10 +99,9 @@ object DbEntities {
     }
   }
 
-  case class NoteData(currentUtxo: ErgoBox, history: IndexedSeq[SigData])
-  case class ReserveData(reserveBox: ErgoBox, signedUnspentNotes: IndexedSeq[UtxoId])
 
-  val issuedNotes = persistent.Map[NoteTokenId, ErgoBox, Nothing, Glass](dir = "issued_notes")
-  val unspentNotes = persistent.Map[UtxoId, NoteData, Nothing, Glass](dir = "unspent_notes")
-  val reserves = persistent.Map[ReserveNftId, ReserveData, Nothing, Glass](dir = "reserves")
+  val issuedNotes = persistent.Map[NoteTokenId, ErgoBox, Nothing, Glass](dir = "db/issued_notes")
+  val unspentNotes = persistent.Map[UtxoId, NoteData, Nothing, Glass](dir = "db/unspent_notes")
+  val reserves = persistent.Map[ReserveNftId, ReserveData, Nothing, Glass](dir = "db/reserves")
+  val state = persistent.Map[String, String, Nothing, Glass](dir = "db/state")
 }
