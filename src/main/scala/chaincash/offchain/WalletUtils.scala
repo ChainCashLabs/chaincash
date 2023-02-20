@@ -36,4 +36,13 @@ trait WalletUtils extends HttpUtils with JsonCodecs {
     addrOpt.get
   }
 
+  def myUnspentNotes(): Seq[ErgoBox] = {
+    // todo: inefficient scan through all the unspent notes here
+    DbEntities.unspentNotes.filter(_._2.holder == myPoint).map(_._2.currentUtxo).materialize
+  }
+
+  def myBalance(): Long = {
+    myUnspentNotes().map(_.additionalTokens.toArray.head._2).sum
+  }
+
 }

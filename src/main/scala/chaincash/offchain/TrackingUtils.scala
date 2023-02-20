@@ -77,7 +77,7 @@ trait TrackingUtils extends WalletUtils with HttpUtils with ScorexLogging {
 
       DbEntities.issuedNotes.get(noteTokenId) match {
         case Some(_) =>
-          
+
         case None =>
           DbEntities.issuedNotes.put(noteTokenId, box)
           // todo: check that AVL+ tree is empty
