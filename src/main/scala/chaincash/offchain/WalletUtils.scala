@@ -8,6 +8,9 @@ trait WalletUtils extends HttpUtils with JsonCodecs {
 
   val feeValue = 2000000
 
+  lazy val myAddress = fetchChangeAddress()
+  lazy val myPoint = myAddress.pubkey.value
+
   def createFeeOut(creationHeight: Int): ErgoBoxCandidate = {
     new ErgoBoxCandidate(feeValue, ErgoScriptPredef.feeProposition(720), creationHeight) // 0.002 ERG
   }

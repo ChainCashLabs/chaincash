@@ -5,6 +5,8 @@ import org.ergoplatform.ErgoBox
 import scorex.util.{ModifierId, ScorexLogging}
 import scorex.util.encode.Base16
 import TrackingTypes._
+import org.ergoplatform.ErgoBox.R4
+import sigmastate.Values.GroupElementConstant
 
 trait TrackingUtils extends WalletUtils with HttpUtils with ScorexLogging {
 
@@ -15,43 +17,79 @@ trait TrackingUtils extends WalletUtils with HttpUtils with ScorexLogging {
 
   def lastProcessedHeight(): Int = DbEntities.state.get(heightKey).map(_.toInt).getOrElse(0)
 
+  private def fetchBoxes(scanId: Int, from: Int, to: Int) = {
+    val reserveScanUrl = s"$serverUrl/scan/unspentBoxes/$scanId?minInclusionHeight=$from&maxInclusionHeight=$to"
+    val boxesUnspentJson = parse(getJsonAsString(reserveScanUrl)).toOption.get
+    boxesUnspentJson.\\("box").map(_.as[ErgoBox].toOption.get)
+  }
+
   def processReservesFor(from: Int, to: Int) = {
 
-    def processBox(box: ErgoBox): Option[ReserveData] = {
+    def processBox(box: ErgoBox): Unit = {
       val boxId = box.id
       val boxTokens = box.additionalTokens.toArray
-      if(boxTokens.isEmpty) {
+      if (boxTokens.isEmpty) {
         log.warn(s"Reserve box with no NFT: ${Base16.encode(boxId)}")
-        return None
+        return ()
       }
       val reserveNftRecord = boxTokens.head
-      if(reserveNftRecord._2 > 1) {
+      if (reserveNftRecord._2 > 1) {
         log.warn(s"Reserve box with more than one id token: ${Base16.encode(boxId)}")
-        return None
+        return ()
       }
       val reserveNftId = reserveNftRecord._1
       val reserveNftIdEncoded = ModifierId @@ Base16.encode(reserveNftId)
-      DbEntities.reserves.get(reserveNftIdEncoded) match {
+      val rd: ReserveData = DbEntities.reserves.get(reserveNftIdEncoded) match {
         case Some(reserveData: ReserveData) =>
           // if existing reserve box updated, e.g. top-up done on it
-          Some(ReserveData(box, reserveData.signedUnspentNotes))
+          ReserveData(box, reserveData.signedUnspentNotes)
         case None =>
-          Some(ReserveData(box, IndexedSeq.empty))
+          val rd = ReserveData(box, IndexedSeq.empty)
+          box.additionalRegisters.get(R4).foreach { v =>
+            v match {
+              case owner: GroupElementConstant if owner == GroupElementConstant(myPoint) =>
+                DbEntities.myReserves.add(rd.reserveNftId)
+              case _ =>
+                log.warn(s"Reserve R4 miss for $v")
+            }
+          }
+          rd
       }
+      DbEntities.reserves.put(key = rd.reserveNftId, value = rd)
     }
 
-    val reserveScanUrl = s"$serverUrl/scan/unspentBoxes/$reserveScanId?minInclusionHeight=$from&maxInclusionHeight=$to"
-    val boxesUnspentJson = parse(getJsonAsString(reserveScanUrl)).toOption.get
-    val boxes = boxesUnspentJson.\\("box").map(_.as[ErgoBox].toOption.get)
-
-    boxes.foreach{box =>
-      processBox(box).map(rd => DbEntities.reserves.put(key = rd.reserveNftId, value = rd))
+    fetchBoxes(reserveScanId, from, to).foreach { box =>
+      processBox(box)
     }
-    println("sz: " + boxes.size)
   }
 
+  // todo: check how it works when not is spent multiple times in the same block
   def processNotes(from: Int, to: Int) = {
+    def processBox(box: ErgoBox): Unit = {
+      val boxId = box.id
+      val boxTokens = box.additionalTokens.toArray
+      if (boxTokens.isEmpty || boxTokens.length > 1) {
+        log.warn(s"Reserve box with no NFT: ${Base16.encode(boxId)}")
+        return ()
+      }
+      val noteTokenId = ModifierId @@ Base16.encode(boxTokens.head._1)
+      val noteValue = boxTokens.head._2
 
+      DbEntities.issuedNotes.get(noteTokenId) match {
+        case Some(_) =>
+
+        case None =>
+          DbEntities.issuedNotes.put(noteTokenId, box)
+//          DbEntities.unspentNotes.put()
+
+          (Some(box), Some(NoteData(box, IndexedSeq.empty)))
+      }
+
+    }
+
+    fetchBoxes(noteScanId, from, to).foreach { box =>
+      processBox(box)
+    }
   }
 
   def processBlocks() = {

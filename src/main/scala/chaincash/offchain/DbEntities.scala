@@ -8,7 +8,6 @@ import scorex.util.ModifierId
 import scorex.util.encode.Base16
 import sigmastate.eval.CGroupElement
 import sigmastate.serialization.GroupElementSerializer
-import special.sigma.GroupElement
 import swaydb.{Glass, _}
 import swaydb.data.slice.Slice
 import swaydb.serializers.Default._
@@ -104,4 +103,7 @@ object DbEntities {
   val unspentNotes = persistent.Map[UtxoId, NoteData, Nothing, Glass](dir = "db/unspent_notes")
   val reserves = persistent.Map[ReserveNftId, ReserveData, Nothing, Glass](dir = "db/reserves")
   val state = persistent.Map[String, String, Nothing, Glass](dir = "db/state")
+
+  val myReserves = persistent.Set[String, Nothing, Glass](dir = "db/my-reserves")
+  val myNotes = persistent.Set[String, Nothing, Glass](dir = "db/my-notes")
 }

@@ -7,4 +7,6 @@ object Tester extends App with TrackingUtils with NoteUtils {
 
   processBlocks()
 
+  println("my reserves: " + DbEntities.myReserves.sizeOfBloomFilterEntries)
+
 }
