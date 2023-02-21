@@ -59,7 +59,7 @@ object DbEntities {
     def toBytes(sigData: SigData): Array[Byte] = {
       Base16.decode(sigData.reserveId).get ++
         Longs.toByteArray(sigData.valueBacked) ++
-        sigData.a.getEncoded.toArray ++
+        GroupElementSerializer.toBytes(sigData.a) ++
         BigIntegers.asUnsignedByteArray(32, sigData.z.bigInteger)
     }
 
@@ -72,7 +72,7 @@ object DbEntities {
       SigData(
         ModifierId @@ Base16.encode(ri),
         Longs.fromByteArray(vb),
-        CGroupElement(GroupElementSerializer.fromBytes(a)),
+        GroupElementSerializer.fromBytes(a),
         BigIntegers.fromUnsignedByteArray(z))
     }
   }
@@ -104,6 +104,7 @@ object DbEntities {
   val reserves = persistent.Map[ReserveNftId, ReserveData, Nothing, Glass](dir = "db/reserves")
   val state = persistent.Map[String, String, Nothing, Glass](dir = "db/state")
 
-  val myReserves = persistent.Set[String, Nothing, Glass](dir = "db/my-reserves")
-  val myNotes = persistent.Set[String, Nothing, Glass](dir = "db/my-notes")
+  val myReserves = persistent.Set[ReserveNftId, Nothing, Glass](dir = "db/my-reserves")
+  //todo: save myNotes as well ?
+
 }

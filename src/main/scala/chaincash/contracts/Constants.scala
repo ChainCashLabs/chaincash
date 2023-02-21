@@ -11,8 +11,8 @@ import sigmastate.AvlTreeFlags
 import special.sigma.{AvlTree, GroupElement}
 
 object Constants {
-  private val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
-  val emptyTreeErgoValue: ErgoValue[AvlTree] = plasmaMap.ergoValue
+  def emptyPlasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+  val emptyTreeErgoValue: ErgoValue[AvlTree] = emptyPlasmaMap.ergoValue
   val emptyTree: AvlTree = emptyTreeErgoValue.getValue
 
   val g: GroupElement = CGroupElement(CryptoConstants.dlogGroup.generator)

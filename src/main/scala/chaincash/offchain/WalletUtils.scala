@@ -1,5 +1,6 @@
 package chaincash.offchain
 
+import chaincash.offchain.TrackingTypes.ReserveNftId
 import io.circe.parser.parse
 import org.ergoplatform.{ErgoAddressEncoder, ErgoBox, ErgoBoxCandidate, ErgoScriptPredef, JsonCodecs, P2PKAddress}
 
@@ -43,6 +44,10 @@ trait WalletUtils extends HttpUtils with JsonCodecs {
 
   def myBalance(): Long = {
     myUnspentNotes().map(_.additionalTokens.toArray.head._2).sum
+  }
+
+  def myReserveIds(): Seq[ReserveNftId] = {
+    DbEntities.myReserves.materialize
   }
 
 }
