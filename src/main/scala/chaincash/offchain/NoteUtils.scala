@@ -10,7 +10,7 @@ import org.ergoplatform.wallet.Constants.eip3DerivationPath
 import org.ergoplatform.wallet.interface4j.SecretString
 import org.ergoplatform.wallet.secrets.{ExtendedSecretKey, JsonSecretStorage}
 import org.ergoplatform.wallet.settings.{EncryptionSettings, SecretStorageSettings}
-import org.ergoplatform.{ErgoBoxCandidate, P2PKAddress, UnsignedErgoLikeTransaction, UnsignedInput}
+import org.ergoplatform.{DataInput, ErgoBoxCandidate, P2PKAddress, UnsignedErgoLikeTransaction, UnsignedInput}
 import scorex.crypto.hash.Digest32
 import scorex.util.encode.Base16
 import sigmastate.Values.{AvlTreeConstant, ByteArrayConstant, ByteConstant, GroupElementConstant}
@@ -87,10 +87,12 @@ trait NoteUtils extends WalletUtils {
     val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray
 
     // todo: likely should be passed from outside
-    val reserveId = Base16.decode(myReserveIds().head).get
+    val reserveId = myReserveIds().head
+    val reserveIdBytes = Base16.decode(reserveId).get
+    val reserveBox = DbEntities.reserves.get(reserveId).get.reserveBox
 
     val prover = noteData.restoreProver
-    val insertProof = prover.insert(reserveId -> sigBytes).proof
+    val insertProof = prover.insert(reserveIdBytes -> sigBytes).proof
     val updTree = prover.ergoValue.getValue
 
     val noteOut = new ErgoBoxCandidate(
@@ -115,7 +117,9 @@ trait NoteUtils extends WalletUtils {
 
     val unsignedInputs = Seq(noteInput) ++ p2pkInputs.map(box => new UnsignedInput(box.id, ContextExtension.empty))
 
-    val tx = new UnsignedErgoLikeTransaction(unsignedInputs.toIndexedSeq, IndexedSeq.empty, outs.toIndexedSeq)
+    val dataInputs = IndexedSeq(DataInput(reserveBox.id))
+
+    val tx = new UnsignedErgoLikeTransaction(unsignedInputs.toIndexedSeq, dataInputs, outs.toIndexedSeq)
     println(tx.asJson)
   }
 

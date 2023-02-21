@@ -8,7 +8,7 @@ import scorex.util.encode.Base16
 import sigmastate.Values.GroupElementConstant
 import sigmastate.eval.CGroupElement
 import sigmastate.interpreter.CryptoConstants.EcPointType
-import sigmastate.serialization.GroupElementSerializer\
+import sigmastate.serialization.GroupElementSerializer
 
 object TrackingTypes {
 
