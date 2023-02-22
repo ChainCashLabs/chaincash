@@ -21,7 +21,6 @@ target
 *.tmp
 
 # binary files
-*.pdf
 *.gz
 
 # Core latex/pdflatex auxiliary files:
