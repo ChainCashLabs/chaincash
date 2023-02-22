@@ -76,9 +76,9 @@ In this paper we introduce ChainCash, a protocol to create money in self-soverei
 \section{Introduction}
 
 Currently, most of monetary value is created by private banks~(often, offshore banks as in so-called "eurodollar" system~\cite{machlup1970euro}) following central banks requirements. As an alternative, starting with Bitcoin~\cite{nakamoto2008peer} launch in 2009, a lot of cryptocurrencies 
-and DeFi applications on top of public blockchains are experimenting with algorithmic money issuance. As another option, we also have alternative, usually local, monetary systems, such as LETS~(local exchange trading systems), timebanks, local government currencies, and so on. Control in traditional fiat monetary systems is possessed by big players~(with rich getting richer effect) creating money in non-transparent ways~(especially in offshore parts) without reasonable limits, on the other side, they have better supply elasticity. Cryptocurrencies~(and, sometimes, application and other tokens on top of public blockchains) are usually more decentralized, have known emission schedule, which makes them appealing assets, on the other hand, supply is disconnected from economic activity and not elastic. Local currencies usually considered more fair in segniorage distribution than fiat currencies, they are successfully boosting local economies often, but, in opposite to fiat and crypto-currencies, they are not global.   \knote{add citations}
+and DeFi applications on top of public blockchains are experimenting with algorithmic money issuance. As another option, we also have alternative, usually local, monetary systems, such as LETS~(local exchange trading systems~\cite{williams1996new}), timebanks, local government currencies~\cite{unterguggenbercer1934end}, and so on. Control in traditional fiat monetary systems is possessed by big players~(with rich getting richer effect) creating money in non-transparent ways~(especially in offshore parts) without reasonable limits, on the other side, they have better supply elasticity. Cryptocurrencies~(and, sometimes, application and other tokens on top of public blockchains) are usually more decentralized, have known emission schedule, which makes them appealing assets, on the other hand, supply is disconnected from economic activity and not elastic. Local currencies usually considered more fair in segniorage distribution than fiat currencies, they are successfully boosting local economies often, but, in opposite to fiat and crypto-currencies, they are not global.
 
-In this paper, we propose \cc{}, a new global kind of money, with decentralized issuance, elastic supply, and also backed~(not necessarily though) by collateral.
+In this paper, we propose \cc{}, a new global kind of money, with decentralized issuance, elastic supply, and also collective backing~(not necessarily though) by collateral.
 
 
 We consider money here via its medium-of-exchange property. For existing currencies, there are usually many options to represent value, such as coins, paper or plastic banknotes, digital records in different ledgers, etc. For \cc{}, we define money as a set of digital notes, each has some nominal~(not fixed but arbitrary on our case). Value of a note is nominated in some existing widely recognizeable unit-of-account, such as gold. 
@@ -110,9 +110,11 @@ To implement \cc{} on top of a UTXO cryptocurrency, such as Ergo, two contracts 
 
 \subsection{Layer1 implementation}
 
+On-chain note and reserve contracts are available in~\cite{contracts}.
 
 
 \subsection{Layer2 implementation}
+
 
 \subsection{Offchain and on-chain part}
 
@@ -125,6 +127,8 @@ To track note and reserve contracts, we are using their P2S addresses just.
 \cc{} could be seen as a powerful foundation for other monetary systems, and we are going to show it in this section. 
 
 \subsection{LETS}
+
+
 
 \subsection{Local Currencies}
 
