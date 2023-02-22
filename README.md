@@ -5,11 +5,18 @@ ChainCash.
 
 ##Contents
 
-* Whitepaper - 
-* Modelling -
-* Contracts - 
-* Tests -
-* Offchain part - 
+* Whitepaper - https://github.com/kushti/chaincash/blob/master/paper/chaincash.pdf
+High-level description of ChinCash protocol and its implementation
+
+* Modelling - https://github.com/kushti/chaincash/tree/master/src/main/scala/chaincash/model
+Contract-less and blockchain-less models of ChainCash entities and one of notes collateralization 
+estimation options.
+
+* Contracts - https://github.com/kushti/chaincash/tree/master/contracts - note and reserve contracts in ErgoScript
+* Tests - https://github.com/kushti/chaincash/blob/master/src/test/scala/kiosk/NoteSpec.scala - Kiosk-based tests for transactions involving note
+ contracts (note creation, spending, redemption)
+* Offchain part - https://github.com/kushti/chaincash/tree/master/src/main/scala/chaincash/offchain - on-chain data tracking,
+  persistence, transaction builders
 
 
 ## TODO: 
