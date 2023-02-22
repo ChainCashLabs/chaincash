@@ -3,7 +3,7 @@
 This repository contains whitepaper, modelling code and prototype implementation for 
 ChainCash. 
 
-##Contents
+## Contents
 
 * Whitepaper - https://github.com/kushti/chaincash/blob/master/paper/chaincash.pdf
 High-level description of ChinCash protocol and its implementation
@@ -20,3 +20,6 @@ estimation options.
 
 
 ## TODO: 
+
+* modify note contract to have ability to spend multiple notes in a single transaction. 
+For that, make action == -1 means redemption, otherwise, action means payment output index
