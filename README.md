@@ -19,7 +19,14 @@ estimation options.
   persistence, transaction builders
 
 
-## TODO: 
+## TODO
 
 * modify note contract to have ability to spend multiple notes in a single transaction. 
 For that, make action == -1 means redemption, otherwise, action means payment output index
+* note acceptance predicates
+* test payments with change (currently only full note amount being paid is tested only)
+* support few spendings of a note in the same block
+* support other tokens in reserves, e.g. SigUSD
+* efficient persistence for own notes (currently, all the notes in the system are iterated over)
+
+and then, API and some front-end on top of it
