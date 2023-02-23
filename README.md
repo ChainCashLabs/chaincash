@@ -60,5 +60,6 @@ For that, make action == -1 means redemption, otherwise, action means payment ou
 * support few spendings of a note in the same block
 * support other tokens in reserves, e.g. SigUSD
 * efficient persistence for own notes (currently, all the notes in the system are iterated over)
+* consider (optional?) redemption fee
 
 and then, API and some front-end on top of it

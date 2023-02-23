@@ -128,19 +128,20 @@ To track note and reserve contracts, we are using their P2S addresses just.
 
 \subsection{LETS}
 
-To implement a local exchange trading system on top of \cc{}, every LETS member needs to whitelist every over member, so they will accept notes of each other regardless reserves backing the notes, and thus LETS can create money within the community (the LETS circle) with no limits. On the other hand, unlike traditional LETS, notes can circulate outside the LETS circle easily as well. 
+To implement a local exchange trading system on top of \cc{}, every LETS member needs to whitelist every over member, so they will accept notes of each other regardless reserves backing the notes, and thus LETS can create money within the community (the LETS circle) with no limits. On the other hand, unlike traditional LETS, notes can circulate outside the LETS circle easily as well. Implementations may vary from LETS members whitelisting unconditionally only notes issued by other members to members whitelisting notes ever signed by LETS members. 
 
 
 \subsection{Local Currencies}
 
-A local or even national government may issue notes and enforce their acceptance within its jurisdiction by enforcing economic agents to accept notes issued ot spend by the government. \knote{demurrage}
+A local or even national government may issue notes and enforce their acceptance within its jurisdiction by enforcing economic agents to accept notes issued or spend by the government. As well as in a LETS implementation, enforced acceptance rules may vary. 
+
+Often local currencies are introducing redemption fee, to protomote local usage. In \cc{}, similar goals can be achieved via modifying the reserve contract in a way that non-locals need to pay redemption fee while locals need not, alternatively, the note contract could be modified in a way that spending to non-local addresses incurs a fee. Local currencies are often associated with demurrage, after well-known Woergl experiment~\cite{unterguggenbercer1934end}. Demmurage could be implemented by modifying note contract. However, modifying note contract makes notes locked by it less appealing to others, but that is common for local currencies already. 
 
 
 \section{\cc{} Advantages}
 
 \section{\cc{} Drawbacks}
 
-Probably main drawbacks 
 
 \section{Possible Extensions}
 
