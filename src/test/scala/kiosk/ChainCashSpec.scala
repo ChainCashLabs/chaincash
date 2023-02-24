@@ -214,7 +214,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .build()
           .convertToInputWith(fakeTxId1, fakeIndex)
           .withContextVars(
-            new ContextVar(0, ErgoValue.of(1: Byte)),
+            new ContextVar(0, ErgoValue.of(-1: Byte)),
             // todo: context vars for another path here, why?
             new ContextVar(1, ErgoValue.of(sig._1)), // todo: fake value
             new ContextVar(2, ErgoValue.of(Array.emptyByteArray)),

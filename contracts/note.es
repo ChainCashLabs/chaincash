@@ -27,10 +27,10 @@
 
     val holder = SELF.R5[GroupElement].get
 
-    if(action == 0) {
+    if(action >= 0) {
       // spending path
 
-      val selfOutput = OUTPUTS(0)
+      val selfOutput = OUTPUTS(action)
 
       val noteValueBytes = longToByteArray(noteValue)
       val message = noteValueBytes ++ noteTokenId

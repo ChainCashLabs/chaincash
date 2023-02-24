@@ -45,7 +45,7 @@ Contract-less and blockchain-less models of ChainCash entities and one of notes 
 estimation options.
 
 * Contracts - https://github.com/kushti/chaincash/tree/master/contracts - note and reserve contracts in ErgoScript
-* Tests - https://github.com/kushti/chaincash/blob/master/src/test/scala/kiosk/NoteSpec.scala - Kiosk-based tests for transactions involving note
+* Tests - https://github.com/kushti/chaincash/blob/master/src/test/scala/kiosk/ChainCashSpec.scala - Kiosk-based tests for transactions involving note
  contracts (note creation, spending, redemption)
 * Offchain part - https://github.com/kushti/chaincash/tree/master/src/main/scala/chaincash/offchain - on-chain data tracking,
   persistence, transaction builders
@@ -53,8 +53,7 @@ estimation options.
 
 ## TODO
 
-* modify note contract to have ability to spend multiple notes in a single transaction. 
-For that, make action == -1 means redemption, otherwise, action means payment output index
+* test spending multiple notes in the same transaction
 * note acceptance predicates
 * test payments with change (currently only full note amount being paid is tested only)
 * support few spendings of a note in the same block
