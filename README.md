@@ -53,12 +53,11 @@ estimation options.
 
 ## TODO
 
-* test spending multiple notes in the same transaction
 * note acceptance predicates
-* test payments with change (currently only full note amount being paid is tested only)
 * support few spendings of a note in the same block
 * support other tokens in reserves, e.g. SigUSD
 * efficient persistence for own notes (currently, all the notes in the system are iterated over)
 * consider (optional?) redemption fee
+* check ERG preservation in note contracts
 
 and then, API and some front-end on top of it

@@ -4,7 +4,7 @@ import chaincash.contracts.Constants
 import chaincash.offchain.SigUtils
 import com.google.common.primitives.Longs
 import io.getblok.getblok_plasma.PlasmaParameters
-import io.getblok.getblok_plasma.collections.PlasmaMap
+import io.getblok.getblok_plasma.collections.{PlasmaMap, Proof}
 import kiosk.ErgoUtil.randBigInt
 import kiosk.encoding.ScalaErgoConverters.getAddressFromString
 import kiosk.ergo.{KioskAvlTree, KioskBox, KioskGroupElement, KioskType, Token, decodeBigInt}
@@ -14,11 +14,13 @@ import org.ergoplatform.appkit.impl.ErgoTreeContract
 import org.ergoplatform.appkit.{BlockchainContext, ConstantsBuilder, ContextVar, ErgoToken, ErgoValue, HttpClientTesting, InputBox, NetworkType, OutBox, OutBoxBuilder, SignedTransaction}
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
+import scorex.crypto.hash.Blake2b256
 import scorex.util.encode.Base16
 import sigmastate.AvlTreeFlags
 import sigmastate.basics.DLogProtocol.ProveDlog
 import sigmastate.eval._
 import sigmastate.serialization.GroupElementSerializer
+import special.sigma.{AvlTree, GroupElement}
 
 import java.util
 
@@ -269,6 +271,125 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         Array[String](holderSecret.toString()),
         false
       )
+    }
+  }
+
+  property("spending should work - multiple notes and change") {
+    createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
+
+      val firstNoteTokenId = noteTokenId
+      val secondNoteTokenId = Base16.encode(Blake2b256.apply(noteTokenId))
+
+      val firstNoteValue = 55
+      val secondNoteValue = 60
+
+      val msg1: Array[Byte] = Longs.toByteArray(firstNoteValue) ++ Base16.decode(firstNoteTokenId).get
+      val msg2: Array[Byte] = Longs.toByteArray(secondNoteValue) ++ Base16.decode(secondNoteTokenId).get
+      val sig1 = SigUtils.sign(msg1, holderSecret)
+      val sig2 = SigUtils.sign(msg2, holderSecret)
+
+      def insertToEmptyTree(sig: (GroupElement, BigInt)): (Proof, AvlTree) = {
+        val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+        val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray
+        val insertRes = plasmaMap.insert(reserveNFTBytes -> sigBytes)
+        val insertProof = insertRes.proof
+        val outTree = plasmaMap.ergoValue.getValue
+        insertProof -> outTree
+      }
+
+      val (insertProof1, outTree1) = insertToEmptyTree(sig1)
+      val (insertProof2, outTree2) = insertToEmptyTree(sig2)
+
+      val firstNoteInput =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(2 * minValue)
+          .tokens(new ErgoToken(firstNoteTokenId, firstNoteValue))
+          .registers(Constants.emptyTreeErgoValue, KioskGroupElement(holderPk).getErgoValue)
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.noteContract))
+          .build()
+          .convertToInputWith(fakeTxId1, fakeIndex)
+          .withContextVars(
+            new ContextVar(0, ErgoValue.of(0: Byte)),
+            new ContextVar(1, ErgoValue.of(sig1._1)),
+            new ContextVar(2, ErgoValue.of(sig1._2.toByteArray)),
+            new ContextVar(3, ErgoValue.of(insertProof1.bytes)),
+            new ContextVar(4, ErgoValue.of(2: Byte))
+          )
+
+      val secondNoteInput =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(2 * minValue + feeValue)
+          .tokens(new ErgoToken(secondNoteTokenId, secondNoteValue))
+          .registers(Constants.emptyTreeErgoValue, KioskGroupElement(holderPk).getErgoValue)
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.noteContract))
+          .build()
+          .convertToInputWith(fakeTxId1, fakeIndex)
+          .withContextVars(
+            new ContextVar(0, ErgoValue.of(1: Byte)),
+            new ContextVar(1, ErgoValue.of(sig2._1)),
+            new ContextVar(2, ErgoValue.of(sig2._2.toByteArray)),
+            new ContextVar(3, ErgoValue.of(insertProof2.bytes)),
+            new ContextVar(4, ErgoValue.of(3: Byte))
+          )
+
+      val reserveDataInput =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue)
+          .tokens(new ErgoToken(reserveNFTBytes, 1))
+          .registers(KioskGroupElement(holderPk).getErgoValue)
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.reserveContract))
+          .build()
+          .convertToInputWith(fakeTxId2, fakeIndex)
+
+      val note1Output = KioskBox(
+        Constants.noteAddress.toString,
+        minValue,
+        registers = Array(new KioskAvlTree(outTree1), KioskGroupElement(holderPk)),
+        tokens = Array((firstNoteTokenId, 50))
+      )
+
+      val note1Change = KioskBox(
+        Constants.noteAddress.toString,
+        minValue,
+        registers = Array(new KioskAvlTree(outTree1), KioskGroupElement(holderPk)),
+        tokens = Array((firstNoteTokenId, 5))
+      )
+
+      val note2Output = KioskBox(
+        Constants.noteAddress.toString,
+        minValue,
+        registers = Array(new KioskAvlTree(outTree2), KioskGroupElement(holderPk)),
+        tokens = Array((secondNoteTokenId, 50))
+      )
+
+      val note2Change = KioskBox(
+        Constants.noteAddress.toString,
+        minValue,
+        registers = Array(new KioskAvlTree(outTree2), KioskGroupElement(holderPk)),
+        tokens = Array((secondNoteTokenId, 10))
+      )
+
+      val inputs = Array[InputBox](firstNoteInput, secondNoteInput)
+      val dataInputs = Array[InputBox](reserveDataInput)
+      val outputs = Array[KioskBox](note1Output, note2Output, note1Change, note2Change)
+
+      noException shouldBe thrownBy {
+        createTx(
+          inputs,
+          dataInputs,
+          outputs,
+          fee = feeValue,
+          changeAddress,
+          Array[String](),
+          false
+        )
+      }
     }
   }
 
