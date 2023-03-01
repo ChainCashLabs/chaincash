@@ -1,6 +1,7 @@
 package chaincash.offchain
 
 import chaincash.contracts.Constants
+import io.getblok.getblok_plasma.collections.PlasmaMap
 import org.ergoplatform.ErgoBox
 import org.ergoplatform.ErgoBox.R5
 import scorex.util.ModifierId
@@ -14,12 +15,17 @@ object TrackingTypes {
 
   type ReserveNftId = ModifierId
   type NoteTokenId = ModifierId
-  type UtxoId = ModifierId
+  type NoteId = ModifierId
 
   case class SigData(reserveId: ReserveNftId, valueBacked: Long, a: EcPointType, z: BigInt)
+
   case class NoteData(currentUtxo: ErgoBox, history: IndexedSeq[SigData]) {
-    def holder: EcPointType = currentUtxo.get(R5).get.asInstanceOf[GroupElementConstant].value.asInstanceOf[CGroupElement].wrappedValue
-    def restoreProver = {
+
+    def holder: EcPointType = {
+      currentUtxo.get(R5).get.asInstanceOf[GroupElementConstant].value.asInstanceOf[CGroupElement].wrappedValue
+    }
+
+    def restoreProver: PlasmaMap[Array[Byte], Array[Byte]] = {
       val keyvals = history.map{sigData =>
         val reserveId = Base16.decode(sigData.reserveId).get
         val value = GroupElementSerializer.toBytes(sigData.a) ++ sigData.z.toByteArray
@@ -30,7 +36,8 @@ object TrackingTypes {
       map
     }
   }
-  case class ReserveData(reserveBox: ErgoBox, signedUnspentNotes: IndexedSeq[UtxoId]) {
+
+  case class ReserveData(reserveBox: ErgoBox, signedUnspentNotes: IndexedSeq[NoteId]) {
     def reserveNftId: ReserveNftId = ModifierId @@ Base16.encode(reserveBox.additionalTokens.toArray.head._1)
   }
 

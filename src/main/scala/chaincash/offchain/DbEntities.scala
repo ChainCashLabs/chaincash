@@ -100,7 +100,7 @@ object DbEntities {
 
 
   val issuedNotes = persistent.Map[NoteTokenId, ErgoBox, Nothing, Glass](dir = "db/issued_notes")
-  val unspentNotes = persistent.Map[UtxoId, NoteData, Nothing, Glass](dir = "db/unspent_notes")
+  val unspentNotes = persistent.Map[NoteId, NoteData, Nothing, Glass](dir = "db/unspent_notes")
   val reserves = persistent.Map[ReserveNftId, ReserveData, Nothing, Glass](dir = "db/reserves")
   val state = persistent.Map[String, String, Nothing, Glass](dir = "db/state")
 
