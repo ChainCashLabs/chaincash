@@ -3,6 +3,7 @@
 
     // Data:
     //  - token #0 - identifying singleton token
+    //  - R4 - signing key (as a group element)
     //
     // Actions:
     //  - redeem note
