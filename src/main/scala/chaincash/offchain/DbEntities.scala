@@ -13,8 +13,19 @@ import swaydb.data.slice.Slice
 import swaydb.serializers.Default._
 import swaydb.serializers.Serializer
 import TrackingTypes._
+import sigmastate.interpreter.CryptoConstants.EcPointType
 
 object DbEntities {
+
+  implicit object EcPointSerializer extends Serializer[EcPointType] {
+    override def write(modifierId: EcPointType): Slice[Byte] =
+      ByteArraySerializer.write(GroupElementSerializer.toBytes(modifierId))
+
+    override def read(slice: Slice[Byte]): EcPointType = {
+      val bytes = ByteArraySerializer.read(slice)
+      GroupElementSerializer.fromBytes(bytes)
+    }
+  }
 
   implicit object ModifierIdSerializer extends Serializer[ModifierId] {
     override def write(modifierId: ModifierId): Slice[Byte] =
@@ -102,6 +113,7 @@ object DbEntities {
   val issuedNotes = persistent.Map[NoteTokenId, ErgoBox, Nothing, Glass](dir = "db/issued_notes")
   val unspentNotes = persistent.Map[NoteId, NoteData, Nothing, Glass](dir = "db/unspent_notes")
   val reserves = persistent.Map[ReserveNftId, ReserveData, Nothing, Glass](dir = "db/reserves")
+  val reserveKeys = persistent.Map[EcPointType, ReserveNftId, Nothing, Glass](dir = "db/reserveKeys")
   val state = persistent.Map[String, String, Nothing, Glass](dir = "db/state")
 
   val myReserves = persistent.Set[ReserveNftId, Nothing, Glass](dir = "db/my-reserves")
