@@ -17,6 +17,11 @@ import sigmastate.interpreter.CryptoConstants.EcPointType
 
 object DbEntities {
 
+
+  val heightKey = "height"
+
+  val oracleRateKey = "goldprice"
+
   implicit object EcPointSerializer extends Serializer[EcPointType] {
     override def write(modifierId: EcPointType): Slice[Byte] =
       ByteArraySerializer.write(GroupElementSerializer.toBytes(modifierId))
@@ -92,10 +97,11 @@ object DbEntities {
     override def write(reserveData: ReserveData): Slice[Byte] = {
       val boxBytes = ErgoBoxSerializer.toBytes(reserveData.reserveBox)
       val boxBytesCount = Shorts.toByteArray(boxBytes.length.toShort)
+      val lialibilitesBytes = Longs.toByteArray(reserveData.liabilites)
       val notesBytes = reserveData.signedUnspentNotes.foldLeft(Array.emptyByteArray) { case (acc, id) =>
         acc ++ Base16.decode(id).get
       }
-      ByteArraySerializer.write(boxBytesCount ++ boxBytes ++ notesBytes)
+      ByteArraySerializer.write(boxBytesCount ++ boxBytes ++ lialibilitesBytes ++ notesBytes)
     }
 
     override def read(slice: Slice[Byte]): ReserveData = {
@@ -103,9 +109,11 @@ object DbEntities {
       val boxBytesCount = Shorts.fromByteArray(bytes.take(2))
       val boxBytes = bytes.slice(2, 2 + boxBytesCount)
       val box = ErgoBoxSerializer.parseBytes(boxBytes)
+      val lialibilitesBytes = bytes.slice(2 + boxBytesCount, 10 + boxBytesCount)
+      val liabilities = Longs.fromByteArray(lialibilitesBytes)
       val historyBs = bytes.slice(2 + boxBytesCount, bytes.length)
       val notes = historyBs.grouped(32).map(bs => ModifierId @@ Base16.encode(bs)).toIndexedSeq
-      ReserveData(box, notes)
+      ReserveData(box, notes, liabilities)
     }
   }
 
@@ -113,8 +121,10 @@ object DbEntities {
   val issuedNotes = persistent.Map[NoteTokenId, ErgoBox, Nothing, Glass](dir = "db/issued_notes")
   val unspentNotes = persistent.Map[NoteId, NoteData, Nothing, Glass](dir = "db/unspent_notes")
   val reserves = persistent.Map[ReserveNftId, ReserveData, Nothing, Glass](dir = "db/reserves")
-  val reserveKeys = persistent.Map[EcPointType, ReserveNftId, Nothing, Glass](dir = "db/reserveKeys")
   val state = persistent.Map[String, String, Nothing, Glass](dir = "db/state")
+
+  // ecpoint -> reserve index
+  val reserveKeys = persistent.Map[EcPointType, ReserveNftId, Nothing, Glass](dir = "db/reserveKeys")
 
   val myReserves = persistent.Set[ReserveNftId, Nothing, Glass](dir = "db/my-reserves")
   //todo: save myNotes as well ?

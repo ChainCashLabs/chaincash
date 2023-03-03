@@ -5,6 +5,7 @@ import org.ergoplatform.ErgoBox
 import scorex.util.{ModifierId, ScorexLogging}
 import scorex.util.encode.Base16
 import TrackingTypes._
+import chaincash.offchain.DbEntities.heightKey
 import org.ergoplatform.ErgoBox.R4
 import sigmastate.Values.GroupElementConstant
 
@@ -13,7 +14,6 @@ trait TrackingUtils extends WalletUtils with HttpUtils with ScorexLogging {
   val noteScanId = 21
   val reserveScanId = 20
 
-  val heightKey = "height"
 
   def lastProcessedHeight(): Int = DbEntities.state.get(heightKey).map(_.toInt).getOrElse(0)
 
@@ -42,9 +42,9 @@ trait TrackingUtils extends WalletUtils with HttpUtils with ScorexLogging {
       val rd: ReserveData = DbEntities.reserves.get(reserveNftIdEncoded) match {
         case Some(reserveData: ReserveData) =>
           // if existing reserve box updated, e.g. top-up done on it
-          ReserveData(box, reserveData.signedUnspentNotes)
+          ReserveData(box, reserveData.signedUnspentNotes, liabilites = 0L) // todo: fix liabilities
         case None =>
-          val rd = ReserveData(box, IndexedSeq.empty)
+          val rd = ReserveData(box, IndexedSeq.empty, liabilites = 0L) // todo: fix liabilities
           box.additionalRegisters.get(R4).foreach { v =>
             v match {
               case owner: GroupElementConstant if owner == GroupElementConstant(myPoint) =>

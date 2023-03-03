@@ -53,11 +53,12 @@ estimation options.
 
 ## TODO
 
-* note acceptance predicates
+* update ReserveData.liabilities and reserveKeys in offchain code
+* offchain code for redemption
 * support few spendings of a note in the same block
 * support other tokens in reserves, e.g. SigUSD
 * efficient persistence for own notes (currently, all the notes in the system are iterated over)
 * consider (optional?) redemption fee
 * check ERG preservation in note contracts
 
-and then, API and some front-end on top of it
+and then, API for clients and some front-end on top of it

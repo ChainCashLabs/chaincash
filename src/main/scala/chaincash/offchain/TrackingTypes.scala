@@ -37,7 +37,9 @@ object TrackingTypes {
     }
   }
 
-  case class ReserveData(reserveBox: ErgoBox, signedUnspentNotes: IndexedSeq[NoteId]) {
+  case class ReserveData(reserveBox: ErgoBox,
+                         signedUnspentNotes: IndexedSeq[NoteId],
+                         liabilites: Long) {
     def reserveNftId: ReserveNftId = ModifierId @@ Base16.encode(reserveBox.additionalTokens.toArray.head._1)
   }
 
