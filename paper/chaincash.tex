@@ -109,6 +109,7 @@ We use Ergo as a Proof-of-Work blockchain to implement \cc{}, as it is built on 
 To implement \cc{} on top of a UTXO cryptocurrency, such as Ergo, two contracts are needed, a note contract and a reserve contract. Reserve contract locks ERG native tokens on top of Ergo blockchain and allow to redeem native or custom tokens when a note is presented. Note contract ensures that the note has proper history, that is, on every spending a valid signature of corresponding reserve is added. It also and allows for a note to be split into two parts~(payment and change), and allows for note redemption.
 
 \subsection{Layer1 implementation}
+\label{sec:l1-impl}
 
 On-chain note and reserve contracts are available in~\cite{contracts}.
 
@@ -145,6 +146,11 @@ Often local currencies are introducing redemption fee, to promote local usage. I
 
 
 \section{Possible Extensions And Clients Flexibility}
+
+Basic Layer-1 implementation described in Section~\ref{sec:l1-impl} is good for starters, but can be extended in many ways,
+and we list some in this section.
+
+First of all, we note that it is possible to add new features without need for the whole network to update. \knote{finish}
 
 
 \newpage
