@@ -81,12 +81,11 @@
       sigmaProp(sameScript && insertionPerformed && properSignature && properReserve && nextHolderDefined && tokensPreserved)
     } else {
       // redemption path
-
-      // todo: action == -1 to redeem, otherwise, action = output # ?
+      // called by setting action variable to any negative value, -1 considered as standard by offchain apps
 
       // we just check current holder's signature here
 
-      //todo: check that note token burnt
+      //todo: check that note token burnt ? or could be done offchain only?
       //todo: check that another box with the same tree and tokens could not be spent
 
       proveDlog(holder)

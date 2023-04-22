@@ -8,7 +8,7 @@
     // Actions:
     //  - redeem note
     //  - top up
-    //  - unlock refund, lock refund, refund
+    //  - init refund, cancel refund, complete refund
 
     val ownerKey = SELF.R4[GroupElement].get // used in notes and unlock/lock/refund actions
     val selfOut = OUTPUTS(0)

@@ -15,7 +15,6 @@ case class Issuer(pk: PubKey)
 
 /**
  * Signature which is proving knowledge of a secret corresponding to public key `pk`
- * // todo: add message?
  */
 case class Signature(pk: PubKey)
 

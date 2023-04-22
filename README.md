@@ -53,8 +53,9 @@ estimation options.
 
 ## TODO
 
+* refund with delay for reserves
 * update ReserveData.liabilities and reserveKeys in offchain code
-* offchain code for redemption
+* offchain code for note redemption
 * support few spendings of a note in the same block
 * support other tokens in reserves, e.g. SigUSD
 * efficient persistence for own notes (currently, all the notes in the system are iterated over)
