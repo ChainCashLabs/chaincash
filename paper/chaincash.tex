@@ -144,13 +144,19 @@ Often local currencies are introducing redemption fee, to promote local usage. I
 
 \section{\cc{} Drawbacks}
 
+ChainCash notes are non-fungible, they share the same unit-of-account, each note has unique backing. This prevents ChainCash usage
+in many DeFi applications, such as liquidity pools, lending pools etc.
+
 
 \section{Possible Extensions And Clients Flexibility}
 
 Basic Layer-1 implementation described in Section~\ref{sec:l1-impl} is good for starters, but can be extended in many ways,
 and we list some in this section.
 
-First of all, we note that it is possible to add new features without need for the whole network to update. \knote{finish}
+First of all, we note that it is possible to add new features without need for the whole network to update. New features,
+such as new reserve and note contracts, can be proposed in form of CCIPs~(ChainCash Improvement Proposals). Then ChainCash
+client may support new features, means new forms of money defined by them. If client is asked to accept a note with unknown
+contract, or a note backed by unknown contract, it will refuse to accept the note just.
 
 
 \newpage
