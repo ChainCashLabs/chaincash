@@ -139,6 +139,11 @@ A local or even national government may issue notes and enforce their acceptance
 
 Often local currencies are introducing redemption fee, to promote local usage. In \cc{}, similar goals can be achieved via modifying the reserve contract in a way that non-locals need to pay redemption fee while locals need not, alternatively, the note contract could be modified in a way that spending to non-local addresses incurs a fee. Local currencies are often associated with demurrage, after well-known Woergl experiment~\cite{unterguggenbercer1934end}. Demmurage could be implemented by modifying note contract. However, modifying note contract makes notes locked by it less appealing to others, but that is common for local currencies already.
 
+\subsection{Multilateral Trade-Credit Set-off}
+
+Multilateral Trade-Credit Set-off~\ref{mtcs} is a technique which allows invoices in closed loops to be cleared against one another.
+In \cc{}, it is possible to clear mutual debts by just burning atomically tokens backed by counter-partis in a single
+transaction. This will allow them to issue more credit.
 
 \section{\cc{} Advantages}
 
