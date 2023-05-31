@@ -42,7 +42,6 @@
 
 \usepackage{flushend}
 
-%\usepackage{xcolor}
 
 \newcommand{\cc}{ChainCash}
 
@@ -85,7 +84,7 @@ We consider money here via its medium-of-exchange property. For existing currenc
 
 We consider that an economy is consisting of known agents $a_1, ..., a_n$. Then we can define medium-of-exchange property of money via a set of agents accepting monetary objects~(i.e. notes). Usually, set of agents accepting money~(local or foreign currency) is fixed. That is, for every monetary object~(e.g. a note), an agent is accepting it as a mean of incoming payment, or reject. In opposite, for \cc{} money, similarly to~\cite{saito2003peer}, the set is individual for a note, so when agent $a_i$ sees a note $n$, it applies its personal predicate $P_i(n)$ to decide whether to accept the note or decline it. 
 
-Then how notes are different in case of \cc{}? We consider that every note is collectively backed by all the previous spenders of the note. Every agent may create reserves to be used as collateral. When an agent spends note, whether received previously from another agent or just created by the agent itself, it is attaching its signature to it. A note could be redemeed at any time against any of reserves of agents previously signed the note. We allow an agent to issue and spend notes without a reserve. It is up to agent's counter-parties then whether to accept and so back an issued note with collateral or agent's trust or not. 
+Then how notes are different in case of \cc{}? We consider that every note is collectively backed by all the previous spenders of the note. Every agent may create reserves to be used as collateral. When an agent spends note, whether received previously from another agent or just created by the agent itself, it is attaching its signature to it. A note could be redemeed at any time against any of reserves of agents previously signed the note. Redemption fee should be paid though, and the fee is incentivizing reserves provision and also using the notes instead of redeeming them. We allow an agent to issue and spend notes without a reserve. It is up to agent's counter-parties then whether to accept and so back an issued note with collateral or agent's trust or not.
 
 As an example, consider a small gold mining cooperative in Ghana issuing a note backed by (tokenized) gold. The note is then accepted by the national government as mean of tax payment. Then the government is using the note~(which is now backed by gold and also trust in Ghana government, so, e.g. convertible to Ghanaian Cedi as well) to buy oil from a Saudi oil company. Then the oil company, having its own oil reserve also, is using the note to buy equipment from China. Now a Chinese company has a note which is backed by gold, oil, and Cedis. 
 

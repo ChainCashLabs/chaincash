@@ -65,6 +65,8 @@
       val nextHolderDefined = selfOutput.R5[GroupElement].isDefined
 
       val changeIdx = getVar[Byte](4)
+
+      // todo: allow burn?
       val tokensPreserved = if(changeIdx.isDefined) {
         val changeOutput = OUTPUTS(changeIdx.get)
 
