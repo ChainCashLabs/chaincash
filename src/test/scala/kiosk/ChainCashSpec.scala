@@ -253,7 +253,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
 
       val reserveOutput = KioskBox(
         Constants.reserveAddress.toString,
-        minValue - oracleRate,
+        minValue - oracleRate * 98 / 100,
         registers = Array(KioskGroupElement(holderPk)),
         tokens = Array((reserveNFT, 1))
       )

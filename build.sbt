@@ -3,7 +3,7 @@ import sbt.Keys.fullClasspath
 
 name := "chaincash"
 
-version := "0.2"
+version := "0.2.1"
 organization := "org.ergoplatform"
 scalaVersion := "2.12.17"
 
