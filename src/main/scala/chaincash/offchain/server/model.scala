@@ -1,4 +1,4 @@
-package chaincash.model
+package chaincash.offchain.server
 
 import scala.util.Random
 

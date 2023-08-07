@@ -17,7 +17,6 @@ import sigmastate.interpreter.CryptoConstants.EcPointType
 
 object DbEntities {
 
-
   val heightKey = "height"
 
   val oracleRateKey = "goldprice"

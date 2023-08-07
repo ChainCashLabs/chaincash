@@ -17,9 +17,9 @@ object Constants {
 
   val g: GroupElement = CGroupElement(CryptoConstants.dlogGroup.generator)
 
-  val noteContract = scala.io.Source.fromFile("contracts/note.es", "utf-8").getLines.mkString("\n")
+  val noteContract = scala.io.Source.fromFile("contracts/basic/note.es", "utf-8").getLines.mkString("\n")
 
-  val reserveContract = scala.io.Source.fromFile("contracts/reserve.es", "utf-8").getLines.mkString("\n")
+  val reserveContract = scala.io.Source.fromFile("contracts/basic/reserve.es", "utf-8").getLines.mkString("\n")
 
   val noteErgoTree = ScriptUtil.compile(Map.empty, noteContract)
   val noteAddress = getAddressFromErgoTree(noteErgoTree)
