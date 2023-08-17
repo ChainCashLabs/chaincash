@@ -35,6 +35,11 @@ standard predicates, thus payment receiver (e.g. an online shop) may publish
 its predicate (or just predicate id) online, and then the payment can be done
 without prior interaction.
 
+## Presentations
+
+* [The World Needs For More Collateral](https://www.ergoforum.org/t/the-world-needs-for-more-collateral/4451) - forum thread
+* [Video presentation from Ergo Summit](https://www.youtube.com/watch?v=NxIlIpO6ZVI)
+
 ## Contents
 
 * Whitepaper - https://github.com/kushti/chaincash/blob/master/paper/chaincash.pdf
