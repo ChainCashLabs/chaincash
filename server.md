@@ -19,11 +19,9 @@ acceptance predicate, and we are going to details here.
 Acceptance predicate should be defined via [HOCON](https://github.com/lightbend/config/blob/master/HOCON.md) based settings. 
 It should be possible to define following data the predicate is built on:
 
-* whitelist (for last signature)
-* blacklist (for last signature)
-* collateralization level (for ERG)
-
-## Architecture
+* whitelist (for current holder)
+* blacklist (for current holder)
+* collateralization level
 
 ## Prototype
 
