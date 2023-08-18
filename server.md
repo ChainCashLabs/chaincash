@@ -36,7 +36,7 @@ ChainCash server will be implemented in Rust and implement following functionali
 
 * support for one or multiple keys (accounts)
 * ability to create reserves for key and withdraw from them
-* ability to create new notes against reserves and propose them for payments
+* ability to create new notes against reserves and propose them for payments, and to redeem notes
 * API to accept (or reject) payments, provide data for the state of accounts and the state of the whole system
 
 ## ChainCash Improvement Proposals

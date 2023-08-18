@@ -45,7 +45,12 @@ More materials:
 * [The World Needs For More Collateral](https://www.ergoforum.org/t/the-world-needs-for-more-collateral/4451) - forum thread
 * [Video presentation from Ergo Summit](https://www.youtube.com/watch?v=NxIlIpO6ZVI)
 
-## Contents
+## ChainCash Server
+
+ChainCash server is planned software acting as a self-sovereign bank with client-side notes
+validation. Currently only [design document](server.md) is available.
+
+## Contents Of This Repository
 
 * Whitepaper - https://github.com/kushti/chaincash/blob/master/paper/chaincash.pdf
 High-level description of ChainCash protocol and its implementation
