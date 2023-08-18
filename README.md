@@ -10,7 +10,7 @@ We consider money as a set of digital notes, and every note is collectively back
 by all the previous spenders of the note. Every agent may create reserves to be used 
 as collateral. When an agent spends note, whether received previously from another 
 agent or just created by the agent itself, it is attaching its signature to it. 
-A note could be redemeed at any time against any of reserves of agents previously 
+A note could be redeemed at any time against any of reserves of agents previously 
 signed the note. We allow an agent
 to issue and spend notes without a reserve. It is up to agent's counter-parties
 then whether to accept and so back an issued note with collateral or agent's
@@ -35,7 +35,12 @@ standard predicates, thus payment receiver (e.g. an online shop) may publish
 its predicate (or just predicate id) online, and then the payment can be done
 without prior interaction.
 
-## Presentations
+## Whitepaper And Other Materials
+
+High-level description of ChainCash protocol and its implementation can be found 
+in the [whitepaper](https://github.com/kushti/chaincash/blob/master/paper/chaincash.pdf). 
+
+More materials: 
 
 * [The World Needs For More Collateral](https://www.ergoforum.org/t/the-world-needs-for-more-collateral/4451) - forum thread
 * [Video presentation from Ergo Summit](https://www.youtube.com/watch?v=NxIlIpO6ZVI)
@@ -43,7 +48,7 @@ without prior interaction.
 ## Contents
 
 * Whitepaper - https://github.com/kushti/chaincash/blob/master/paper/chaincash.pdf
-High-level description of ChinCash protocol and its implementation
+High-level description of ChainCash protocol and its implementation
 
 * Modelling - https://github.com/kushti/chaincash/tree/master/src/main/scala/chaincash/model
 Contract-less and blockchain-less models of ChainCash entities and one of notes collateralization 
