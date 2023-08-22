@@ -3,14 +3,16 @@
 
     // It has two execution paths:
 
-    // spend: full or with change
+    // spend: full spending or with change
 
     // redeem:
 
     // to create a note, ...
 
     // box data:
-    // R4 - history of ownership (under AVL+ tree)
+    // R4 - history of ownership (under AVL+ tree),
+    //      tree contains reserveId as a key, signature as value,
+    //      and message is note value and token id
     // R5 - current holder of the note (public key given as a group element)
 
     val g: GroupElement = groupGenerator
@@ -27,7 +29,7 @@
 
     val holder = SELF.R5[GroupElement].get
 
-    if(action >= 0) {
+    if (action >= 0) {
       // spending path
 
       val selfOutput = OUTPUTS(action)
@@ -64,7 +66,7 @@
       val sameScript = selfOutput.propositionBytes == SELF.propositionBytes
       val nextHolderDefined = selfOutput.R5[GroupElement].isDefined
 
-      val changeIdx = getVar[Byte](4)
+      val changeIdx = getVar[Byte](4) // optional index of change output
 
       // todo: allow burn?
       val tokensPreserved = if(changeIdx.isDefined) {

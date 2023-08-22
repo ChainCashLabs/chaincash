@@ -21,7 +21,7 @@
 
     if (action == 0) {
       // redeem path
-      // provides gold price in nanoErg per kg
+      // oracle provides gold price in nanoErg per kg in its R4 register
 
       val g: GroupElement = groupGenerator
 
