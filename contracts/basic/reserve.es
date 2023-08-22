@@ -4,11 +4,14 @@
     // Data:
     //  - token #0 - identifying singleton token
     //  - R4 - signing key (as a group element)
+    //  - R5 - refund init height (Int.MaxValue if not set)
     //
     // Actions:
-    //  - redeem note
-    //  - top up
-    //  - init refund, cancel refund, complete refund
+    //  - redeem note (#0)
+    //  - top up      (#1)
+    //  - init refund (#2)
+    //  - cancel refund (#3)
+    //  - complete refund (#4)
 
     val ownerKey = SELF.R4[GroupElement].get // used in notes and unlock/lock/refund actions
     val selfOut = OUTPUTS(0)
@@ -65,8 +68,21 @@
       // top up
       sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added
     } else {
-      // todo: implement refund
-      sigmaProp(false)
+      // todo: write tests for refund paths, document them
+      if (action == 2) {
+        // init refund
+        val correctHeight = selfOut.R5[Int].get >= HEIGHT - 5
+        sigmaProp(correctHeight) && proveDlog(ownerKey)
+      } else if (action == 3) {
+        // cancel refund
+        val correctHeight = !(selfOut.R5[Int].isDefined)
+        sigmaProp(correctHeight) && proveDlog(ownerKey)
+      } else if (action == 4) {
+        // complete refund
+        proveDlog(ownerKey)
+      } else {
+        sigmaProp(false)
+      }
     }
 
 
