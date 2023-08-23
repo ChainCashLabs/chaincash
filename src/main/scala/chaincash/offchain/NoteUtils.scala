@@ -6,10 +6,12 @@ import chaincash.offchain.TrackingTypes.NoteData
 import com.google.common.primitives.Longs
 import io.circe.syntax.EncoderOps
 import org.ergoplatform.ErgoBox.{R4, R5}
-import org.ergoplatform.wallet.Constants.eip3DerivationPath
+import org.ergoplatform.sdk.wallet.Constants.eip3DerivationPath
+import org.ergoplatform.sdk.wallet.secrets.ExtendedSecretKey
+import org.ergoplatform.sdk.wallet.settings.EncryptionSettings
 import org.ergoplatform.wallet.interface4j.SecretString
-import org.ergoplatform.wallet.secrets.{ExtendedSecretKey, JsonSecretStorage}
-import org.ergoplatform.wallet.settings.{EncryptionSettings, SecretStorageSettings}
+import org.ergoplatform.wallet.secrets.JsonSecretStorage
+import org.ergoplatform.wallet.settings.SecretStorageSettings
 import org.ergoplatform.{DataInput, ErgoBoxCandidate, P2PKAddress, UnsignedErgoLikeTransaction, UnsignedInput}
 import scorex.crypto.hash.Digest32
 import scorex.util.encode.Base16
@@ -25,7 +27,7 @@ trait NoteUtils extends WalletUtils {
   def createNote(amountMg: Long, ownerPubkey: GroupElement, changeAddress: P2PKAddress): Unit = {
     val inputs = fetchInputs().take(60)
     val creationHeight = inputs.map(_.creationHeight).max
-    val noteTokenId = Digest32 @@ inputs.head.id
+    val noteTokenId = Digest32 @@ inputs.head.id.toArray
 
     val inputValue = inputs.map(_.value).sum
     require(inputValue >= feeValue * 21)
@@ -36,7 +38,7 @@ trait NoteUtils extends WalletUtils {
       noteAmount,
       noteErgoTree,
       creationHeight,
-      Colls.fromItems(noteTokenId -> amountMg),
+      Colls.fromItems((Digest32Coll @@ Colls.fromArray(noteTokenId)) -> amountMg),
       Map(R4 -> AvlTreeConstant(Constants.emptyTree), R5 -> GroupElementConstant(ownerPubkey))
     )
     val feeOut = createFeeOut(creationHeight)
@@ -81,7 +83,7 @@ trait NoteUtils extends WalletUtils {
     val noteAmount = noteRecord._2
 
     val secret = readSecret()
-    val msg: Array[Byte] = Longs.toByteArray(noteAmount) ++ noteTokenId
+    val msg: Array[Byte] = Longs.toByteArray(noteAmount) ++ noteTokenId.toArray
     val sig = SigUtils.sign(msg, secret.privateInput.w)
     secret.zeroSecret()
     val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray

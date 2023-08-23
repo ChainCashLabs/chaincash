@@ -1,7 +1,9 @@
-package org.ergoplatform.appkit
+package chaincash
 
-import scalan.util.FileUtil
-import org.ergoplatform.appkit.JavaHelpers._
+import org.ergoplatform.appkit.{FileMockedErgoClient, FileUtil}
+import org.ergoplatform.sdk.JavaHelpers._
+
+import java.io.File
 import java.util.{List => JList}
 import java.lang.{String => JString}
 
@@ -10,11 +12,11 @@ trait HttpClientTesting {
   val addr1 = "9f4QF8AD1nQ3nJahQVkMj8hFSVVzVom77b52JU7EW71Zexg6N8v"
 
   def loadNodeResponse(name: String) = {
-    FileUtil.read(FileUtil.file(s"$responsesDir/node_responses/$name"))
+    FileUtil.read(new File(s"$responsesDir/node_responses/$name"))
   }
 
   def loadExplorerResponse(name: String) = {
-    FileUtil.read(FileUtil.file(s"$responsesDir/explorer_responses/$name"))
+    FileUtil.read(new File(s"$responsesDir/explorer_responses/$name"))
   }
 
   case class MockData(nodeResponses: Seq[String] = Nil, explorerResponses: Seq[String] = Nil) {

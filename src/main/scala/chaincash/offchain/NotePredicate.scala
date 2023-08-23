@@ -1,7 +1,7 @@
 package chaincash.offchain
 
 import TrackingTypes.{NoteData, NoteId, ReserveNftId}
-import sigmastate.interpreter.CryptoConstants.EcPointType
+import sigmastate.basics.CryptoConstants.EcPointType
 
 trait NotePredicate {
   /**

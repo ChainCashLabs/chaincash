@@ -1,12 +1,20 @@
 package chaincash.offchain
 
-import kiosk.ErgoUtil.randBigInt
-import sigmastate.interpreter.CryptoConstants
+import sigmastate.basics.CryptoConstants
 import special.sigma.GroupElement
 import sigmastate.eval._
+import sigmastate.basics.SecP256K1Group
+import java.security.SecureRandom
 import scala.annotation.tailrec
 
 object SigUtils {
+
+  def randBigInt: BigInt = {
+    val random = new SecureRandom()
+    val values = new Array[Byte](32)
+    random.nextBytes(values)
+    BigInt(values).mod(SecP256K1Group.q)
+  }
 
   @tailrec
   def sign(msg: Array[Byte], secretKey: BigInt): (GroupElement, BigInt) = {

@@ -8,7 +8,7 @@ import scorex.util.ModifierId
 import scorex.util.encode.Base16
 import sigmastate.Values.GroupElementConstant
 import sigmastate.eval.CGroupElement
-import sigmastate.interpreter.CryptoConstants.EcPointType
+import sigmastate.basics.CryptoConstants.EcPointType
 import sigmastate.serialization.GroupElementSerializer
 
 object TrackingTypes {
@@ -40,7 +40,7 @@ object TrackingTypes {
   case class ReserveData(reserveBox: ErgoBox,
                          signedUnspentNotes: IndexedSeq[NoteId],
                          liabilites: Long) {
-    def reserveNftId: ReserveNftId = ModifierId @@ Base16.encode(reserveBox.additionalTokens.toArray.head._1)
+    def reserveNftId: ReserveNftId = ModifierId @@ Base16.encode(reserveBox.additionalTokens.toArray.head._1.toArray)
   }
 
 }

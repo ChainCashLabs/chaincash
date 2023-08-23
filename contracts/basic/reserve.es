@@ -22,7 +22,7 @@
 
     val action = getVar[Byte](0).get
 
-    if (action == 0) {
+    if (action == 0 && getVar[Coll[Byte]](1).isDefined) {
       // redeem path
       // oracle provides gold price in nanoErg per kg in its R4 register
 
@@ -76,10 +76,10 @@
       } else if (action == 3) {
         // cancel refund
         val correctHeight = !(selfOut.R5[Int].isDefined)
-        sigmaProp(correctHeight) && proveDlog(ownerKey)
+        sigmaProp(selfPreserved && correctHeight) && proveDlog(ownerKey)
       } else if (action == 4) {
         // complete refund
-        proveDlog(ownerKey)
+        proveDlog(ownerKey) // todo: check is it ok to check no conditions
       } else {
         sigmaProp(false)
       }

@@ -2,7 +2,7 @@ package chaincash.offchain
 
 import chaincash.offchain.TrackingTypes.ReserveNftId
 import io.circe.parser.parse
-import org.ergoplatform.{ErgoAddressEncoder, ErgoBox, ErgoBoxCandidate, ErgoScriptPredef, JsonCodecs, P2PKAddress}
+import org.ergoplatform.{ErgoAddressEncoder, ErgoBox, ErgoBoxCandidate, ErgoTreePredef, JsonCodecs, P2PKAddress}
 
 trait WalletUtils extends HttpUtils with JsonCodecs {
   val serverUrl: String
@@ -13,7 +13,7 @@ trait WalletUtils extends HttpUtils with JsonCodecs {
   lazy val myPoint = myAddress.pubkey.value
 
   def createFeeOut(creationHeight: Int): ErgoBoxCandidate = {
-    new ErgoBoxCandidate(feeValue, ErgoScriptPredef.feeProposition(720), creationHeight) // 0.002 ERG
+    new ErgoBoxCandidate(feeValue, ErgoTreePredef.feeProposition(720), creationHeight) // 0.002 ERG
   }
 
   def fetchInputs(): Seq[ErgoBox] = {

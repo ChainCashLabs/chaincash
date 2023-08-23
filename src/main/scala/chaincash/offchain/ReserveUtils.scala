@@ -17,7 +17,7 @@ trait ReserveUtils extends WalletUtils with JsonCodecs {
   def createReserve(pubKey: GroupElement, amount: Long, changeAddress: P2PKAddress): Unit = {
     val inputs = fetchInputs().take(60)
     val creationHeight = inputs.map(_.creationHeight).max
-    val reserveInputNft = Digest32 @@ inputs.head.id
+    val reserveInputNft = Digest32 @@ inputs.head.id.toArray
 
     val inputValue = inputs.map(_.value).sum
     require(inputValue >= amount + feeValue)
@@ -26,7 +26,7 @@ trait ReserveUtils extends WalletUtils with JsonCodecs {
       amount,
       reserveErgoTree,
       creationHeight,
-      Colls.fromItems(reserveInputNft -> 1L),
+      Colls.fromItems((Digest32Coll @@ Colls.fromArray(reserveInputNft)) -> 1L),
       Map(R4 -> GroupElementConstant(pubKey))
     )
     val feeOut = createFeeOut(creationHeight)

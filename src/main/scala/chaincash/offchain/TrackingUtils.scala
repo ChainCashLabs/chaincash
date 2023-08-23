@@ -38,7 +38,7 @@ trait TrackingUtils extends WalletUtils with HttpUtils with ScorexLogging {
         return
       }
       val reserveNftId = reserveNftRecord._1
-      val reserveNftIdEncoded = ModifierId @@ Base16.encode(reserveNftId)
+      val reserveNftIdEncoded = ModifierId @@ Base16.encode(reserveNftId.toArray)
       val rd: ReserveData = DbEntities.reserves.get(reserveNftIdEncoded) match {
         case Some(reserveData: ReserveData) =>
           // if existing reserve box updated, e.g. top-up done on it
@@ -72,7 +72,7 @@ trait TrackingUtils extends WalletUtils with HttpUtils with ScorexLogging {
         log.warn(s"Reserve box with no NFT: $boxId")
         return
       }
-      val noteTokenId = ModifierId @@ Base16.encode(boxTokens.head._1)
+      val noteTokenId = ModifierId @@ Base16.encode(boxTokens.head._1.toArray)
       val noteValue = boxTokens.head._2
 
       DbEntities.issuedNotes.get(noteTokenId) match {
