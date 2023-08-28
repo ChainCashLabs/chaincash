@@ -450,9 +450,4 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
     }
   }
 
-  property("refund - init") {
-
-  }
-
-
 }

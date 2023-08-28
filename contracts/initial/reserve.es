@@ -80,7 +80,7 @@
       } else if (action == 4) {
         // complete refund
         val refundNotificationPeriod = 7200 // 10 days
-        val correctHeight = (self.R5[Int].get + refundNotificationPeriod) >= HEIGHT
+        val correctHeight = (SELF.R5[Int].get + refundNotificationPeriod) >= HEIGHT
         sigmaProp(correctHeight) && proveDlog(ownerKey) // todo: check is it ok to check no conditions
       } else {
         sigmaProp(false)
