@@ -14,6 +14,8 @@
     //      tree contains reserveId as a key, signature as value,
     //      and message is note value and token id
     // R5 - current holder of the note (public key given as a group element)
+    // R6 - current length of the chain (as long int)
+    // R7 - value and id of the note
 
     val g: GroupElement = groupGenerator
 
@@ -34,8 +36,11 @@
 
       val selfOutput = OUTPUTS(action)
 
+      val position = SELF.R6[Long].get
+
       val noteValueBytes = longToByteArray(noteValue)
-      val message = noteValueBytes ++ noteTokenId
+      val positionBytes = longToByteArray(position)
+      val message = noteValueBytes ++ noteTokenId ++ positionBytes
 
       // Computing challenge
       val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
@@ -49,50 +54,60 @@
       val zBytes = getVar[Coll[Byte]](2).get
       val z = byteArrayToBigInt(zBytes)
 
+      val properHolder = holder == reserve.R4[GroupElement].get
+
       // Signature is valid if g^z = a * x^e
-      val properSignature = g.exp(z) == a.multiply(holder.exp(eInt))
+      val properSignature = (g.exp(z) == a.multiply(holder.exp(eInt))) && properHolder
 
-      val properReserve = holder == reserve.R4[GroupElement].get
+      val keyBytes = longToByteArray(position) ++ reserveId
 
-      val leafValue = aBytes ++ zBytes
-      val keyVal = (reserveId, leafValue)
+      val valueBytes = aBytes ++ zBytes
+
+      val keyVal = (keyBytes, valueBytes)
       val proof = getVar[Coll[Byte]](3).get
 
       val nextTree: Option[AvlTree] = history.insert(Coll(keyVal), proof)
       // This will fail if the operation failed or the proof is incorrect due to calling .get on the Option
       val outputDigest: Coll[Byte] = nextTree.get.digest
 
-      val insertionPerformed = selfOutput.R4[AvlTree].get.digest == outputDigest
-      val sameScript = selfOutput.propositionBytes == SELF.propositionBytes
-      val nextHolderDefined = selfOutput.R5[GroupElement].isDefined
+      def nextNoteCorrect(noteOut: Box): Boolean = {
+        val insertionPerformed = noteOut.R4[AvlTree].get.digest == outputDigest
+        val sameScript = noteOut.propositionBytes == SELF.propositionBytes
+        val nextHolderDefined = noteOut.R5[GroupElement].isDefined
+        val valuePreserved = noteOut.value >= SELF.value
+        val positionIncreased = noteOut.R6[Long].get == (position + 1)
+
+        positionIncreased && insertionPerformed && sameScript && nextHolderDefined && valuePreserved
+      }
 
       val changeIdx = getVar[Byte](4) // optional index of change output
 
-      val tokensPreserved = if(changeIdx.isDefined) {
+      val outputsValid = if(changeIdx.isDefined) {
         val changeOutput = OUTPUTS(changeIdx.get)
 
         // burn allowed
         (selfOutput.tokens(0)._2 + changeOutput.tokens(0)._2) <= SELF.tokens(0)._2 &&
             changeOutput.tokens(0)._1 == noteTokenId &&
             selfOutput.tokens(0)._1 == noteTokenId &&
-            changeOutput.propositionBytes == SELF.propositionBytes
+            nextNoteCorrect(selfOutput) &&
+            nextNoteCorrect(changeOutput)
       } else {
-        selfOutput.tokens(0) == SELF.tokens(0)
+        selfOutput.tokens(0) == SELF.tokens(0) &&
+            nextNoteCorrect(selfOutput)
       }
 
-      val valuePreserved = selfOutput.value >= SELF.value
-
-      sigmaProp(sameScript && insertionPerformed && properSignature && properReserve && nextHolderDefined && tokensPreserved)
+      sigmaProp(properSignature && outputsValid)
     } else {
       // redemption path
+
       // called by setting action variable to any negative value, -1 considered as standard by offchain apps
 
-      // we just check current holder's signature here
+      val redeemOutput = OUTPUTS(0)
+      val redemptionCorrect = redeemOutput.tokens(0)._1 == fromBase58("") //todo: redemption token id
+      val historyCorrect = redeemOutput.R4[AvlTree].get == SELF.R4[AvlTree].get
+      val redemptionDeadlineValid = redeemOutput.R5[Int].get >= HEIGHT + 1440
 
-      //todo: check that note token burnt
-      //todo: check that another box with the same tree and tokens could not be spent
-
-      proveDlog(holder)
+      sigmaProp(redemptionCorrect && historyCorrect && redemptionDeadlineValid)
     }
 
 }
