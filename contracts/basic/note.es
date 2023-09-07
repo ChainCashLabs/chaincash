@@ -15,7 +15,7 @@
     //      and message is note value and token id
     // R5 - current holder of the note (public key given as a group element)
     // R6 - current length of the chain (as long int)
-    // R7 - value and id of the note
+    // R7 - note value (as long int)
 
     val g: GroupElement = groupGenerator
 
@@ -23,24 +23,21 @@
 
     val action = getVar[Byte](0).get
 
-    val noteTokenId = SELF.tokens(0)._1
-    val noteValue = SELF.tokens(0)._2
-
     val reserve = CONTEXT.dataInputs(0)
     val reserveId = reserve.tokens(0)._1
-
-    val holder = SELF.R5[GroupElement].get
 
     if (action >= 0) {
       // spending path
 
+      val holder = SELF.R5[GroupElement].get
+
       val selfOutput = OUTPUTS(action)
 
+      // Message to be signed is position + note amount + note id
       val position = SELF.R6[Long].get
-
-      val noteValueBytes = longToByteArray(noteValue)
+      val noteValueBytes = longToByteArray(SELF.R7[Long].get)
       val positionBytes = longToByteArray(position)
-      val message = noteValueBytes ++ noteTokenId ++ positionBytes
+      val message = positionBytes ++ noteValueBytes ++ SELF.id
 
       // Computing challenge
       val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
@@ -82,18 +79,21 @@
 
       val changeIdx = getVar[Byte](4) // optional index of change output
 
+      val selfValue = SELF.R6[Long].get
+      val selfOutValue = selfOutput.R6[Long].get
+
       val outputsValid = if(changeIdx.isDefined) {
         val changeOutput = OUTPUTS(changeIdx.get)
 
-        // burn allowed
-        (selfOutput.tokens(0)._2 + changeOutput.tokens(0)._2) <= SELF.tokens(0)._2 &&
-            changeOutput.tokens(0)._1 == noteTokenId &&
-            selfOutput.tokens(0)._1 == noteTokenId &&
+        val changeOutValue = changeOutput.R6[Long].get
+
+        (selfOutValue + changeOutValue) <= selfValue && // burn allowed
+            selfOutValue > 0 &&
+            changeOutValue > 0 &&
             nextNoteCorrect(selfOutput) &&
             nextNoteCorrect(changeOutput)
       } else {
-        selfOutput.tokens(0) == SELF.tokens(0) &&
-            nextNoteCorrect(selfOutput)
+        (selfOutValue == selfValue) && nextNoteCorrect(selfOutput)
       }
 
       sigmaProp(properSignature && outputsValid)
