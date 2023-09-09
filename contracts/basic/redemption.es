@@ -24,7 +24,7 @@
     // * wrong zero pos data - collateral seized
     // * wrong value transition - collateral seized
     // * wrong leaf - collateral seized
-    // * wrond redeem id - collateral seized
+    // * wrond redeem reserve id - collateral seized
 
     val action = getVar[Byte](0).get
 
@@ -40,14 +40,13 @@
       } else if (action == -3) {
         val selfOutput = OUTPUTS(0)
 
-        // todo: value not always preserved
         // tree leaf contents is asked or provided
         val selfPreservationExceptR8 = selfOutput.tokens == SELF.tokens &&
                                        selfOutput.value == SELF.value &&
                                        selfOutput.R4[AvlTree].get == SELF.R4[AvlTree].get &&
-                                       selfOutput.R5[(Long, Coll[Byte])] == SELF.R5[(Long, Coll[Byte])] &&
-                                       selfOutput.R6[Coll[Coll[Byte]]] == SELF.R6[Coll[Coll[Byte]]] &&
-                                       selfOutput.R7[(Long, Coll[Byte])] == SELF.R7[(Long, Coll[Byte])] &&
+                                       selfOutput.R5[(Long, Coll[Byte])].get == SELF.R5[(Long, Coll[Byte])].get &&
+                                       selfOutput.R6[Coll[Coll[Byte]]].get == SELF.R6[Coll[Coll[Byte]]].get &&
+                                       selfOutput.R7[(Long, Coll[Byte])].get == SELF.R7[(Long, Coll[Byte])].get &&
                                        selfOutput.R9[Int].get == SELF.R9[Int].get
 
         val r8 = SELF.R8[(Long, Boolean)].get
@@ -103,8 +102,20 @@
         val redeemPosition = r7._1
         val redeemReserveId = r7._2
         val alternativePosition = getVar[Long](1).get
-        // todo: implement
-        false
+        val redeemReserve = CONTEXT.dataInputs(0)
+        val altReserve = CONTEXT.dataInputs(1)
+
+        val selfPreservation = selfOutput.tokens == SELF.tokens &&
+                               selfOutput.value == SELF.value &&
+                               selfOutput.R4[AvlTree].get == SELF.R4[AvlTree].get &&
+                               selfOutput.R5[(Long, Coll[Byte])].get == SELF.R5[(Long, Coll[Byte])].get &&
+                               selfOutput.R6[Coll[Coll[Byte]]].get == SELF.R6[Coll[Coll[Byte]]].get &&
+                               selfOutput.R7[(Long, Coll[Byte])].get == SELF.R7[(Long, Coll[Byte])].get &&
+                               selfOutput.R8[(Long, Boolean)].get == SELF.R8[(Long, Boolean)].get &&
+                               selfOutput.R9[Int].get == SELF.R9[Int].get
+
+        // todo: implement alternative position and reserve id check
+        altReserve.value >= redeemReserve.value && alternativePosition < redeemPosition && selfPreservation
       } else {
         // no more actions supported
         false
