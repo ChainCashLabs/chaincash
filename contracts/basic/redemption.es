@@ -6,7 +6,7 @@
     //
     // Registers:
     // R4: history tree (position -> (a, z)), where (a, z) is sig for (tree hash, reserve id, note id, note value, next reserve id)
-    // R5: (current position, current reserve id)
+    // R5: (holder position, holder reserve id)
     // R6: zero position data as collection (signature - a, signature - z, reserve id, note id, note value, next reserve id)
     // R7: (redeem position, redeem reserve id)
     // R8: (max contested position, contestMode) - initially (-1, false)
@@ -15,7 +15,7 @@
     // 720 blocks for contestation
 
     // Dispute actions:
-    // * wrong reserve id - collateral seized
+    // * wrong holder reserve id - collateral seized
     // * wrong collateral - collateral seized
     // * tree leaf not known (collateral not seized)
     // * earlier reserve exists (collateral not seized)
@@ -33,7 +33,41 @@
       // dispute
       if (action == -1) {
         // wrong reserve id
-        false // todo: implement
+
+        val r5 = SELF.R5[(Long, Coll[Byte])].get
+        val holderPosition = r5._1
+        val holderReserveId = r5._2
+        val pos = holderPosition - 1
+
+        val treeHashDigest = getVar[Coll[Byte]](1).get
+        val reserveId = getVar[Coll[Byte]](2).get
+        val noteId = getVar[Coll[Byte]](3).get
+        val noteValue = getVar[Long](4).get
+        val nextReserveId = getVar[Coll[Byte]](5).get
+        val a = getVar[GroupElement](6).get
+        val aBytes = a.getEncoded
+        val zBytes = getVar[Coll[Byte]](7).get
+        val properFormat = treeHashDigest.size == 32 && reserveId.size == 32 &&
+                           noteId.size == 32 && nextReserveId.size == 32
+        val message = treeHashDigest ++ reserveId ++ noteId ++ longToByteArray(noteValue) ++ nextReserveId
+
+        // Computing challenge
+        val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
+        val eInt = byteArrayToBigInt(e) // challenge as big integer
+
+        val g: GroupElement = groupGenerator
+        val z = byteArrayToBigInt(zBytes)
+        val reserve = CONTEXT.dataInputs(0)
+        val reserveIdValid = reserve.tokens(0)._1 == reserveId
+        val reservePk = reserve.R4[GroupElement].get
+        val properSignature = (g.exp(z) == a.multiply(reservePk.exp(eInt))) && properFormat && reserveIdValid
+
+        val proof = getVar[Coll[Byte]](8).get
+        val history = SELF.R4[AvlTree].get
+        val keyBytes = longToByteArray(pos)
+        val properProof = history.get(keyBytes, proof).get == message
+
+        properSignature && properProof && (nextReserveId == holderReserveId)
       } else if (action == -2) {
         // wrong collateral
         SELF.value != 2000000000 // 2 ERG, make collateral configurable via data-input
@@ -97,6 +131,7 @@
           selfPreservationExceptR8 && outR8Valid
         }
       }  else if (action == -4) {
+        val selfOutput = OUTPUTS(0)
         // earlier reserve exists (collateral not seized)
         val r7 = SELF.R7[(Long, Coll[Byte])].get
         val redeemPosition = r7._1
