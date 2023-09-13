@@ -7,10 +7,9 @@
     // Registers:
     // R4: history tree (position -> (a, z)), where (a, z) is sig for (tree hash, reserve id, note id, note value, next reserve id)
     // R5: (holder position, holder reserve id)
-    // R6: zero position data as collection (signature - a, signature - z, reserve id, note id, note value, next reserve id)
-    // R7: (redeem position, redeem reserve id)
-    // R8: (max contested position, contestMode) - initially (-1, false)
-    // R9: deadline
+    // R6: (redeem position, redeem reserve id)
+    // R7: (max contested position, contestMode) - initially (-1, false)
+    // R8: deadline
 
     // 720 blocks for contestation
 
@@ -21,7 +20,6 @@
     // * earlier reserve exists (collateral not seized)
     // * tree cut - collateral seized
     // * double spend - collateral seized
-    // * wrong zero pos data - collateral seized
     // * wrong value transition - collateral seized
     // * wrong leaf - collateral seized
     // * wrond redeem reserve id - collateral seized
@@ -33,6 +31,7 @@
       // dispute
       if (action == -1) {
         // wrong reserve id
+        // we check that last leaf in the tree is having current holder reserve id
 
         val r5 = SELF.R5[(Long, Coll[Byte])].get
         val holderPosition = r5._1
@@ -65,27 +64,29 @@
         val proof = getVar[Coll[Byte]](8).get
         val history = SELF.R4[AvlTree].get
         val keyBytes = longToByteArray(pos)
-        val properProof = history.get(keyBytes, proof).get == message
+        val properProof = history.get(keyBytes, proof).get == (aBytes ++ zBytes)
 
+        // preservation not checked so collateral could be fully spent
         properSignature && properProof && (nextReserveId == holderReserveId)
       } else if (action == -2) {
         // wrong collateral
         SELF.value != 2000000000 // 2 ERG, make collateral configurable via data-input
       } else if (action == -3) {
+        // tree leaf contents is asked or provided
+
         val selfOutput = OUTPUTS(0)
 
-        // tree leaf contents is asked or provided
-        val selfPreservationExceptR8 = selfOutput.tokens == SELF.tokens &&
+        val selfPreservationExceptR7 = selfOutput.tokens == SELF.tokens &&
                                        selfOutput.value == SELF.value &&
                                        selfOutput.R4[AvlTree].get == SELF.R4[AvlTree].get &&
                                        selfOutput.R5[(Long, Coll[Byte])].get == SELF.R5[(Long, Coll[Byte])].get &&
-                                       selfOutput.R6[Coll[Coll[Byte]]].get == SELF.R6[Coll[Coll[Byte]]].get &&
-                                       selfOutput.R7[(Long, Coll[Byte])].get == SELF.R7[(Long, Coll[Byte])].get &&
-                                       selfOutput.R9[Int].get == SELF.R9[Int].get
+                                       selfOutput.R6[(Long, Coll[Byte])].get == SELF.R6[(Long, Coll[Byte])].get &&
+                                       selfOutput.R7[(Long, Boolean)].get == SELF.R7[(Long, Boolean)].get &&
+                                       selfOutput.R8[Int].get == SELF.R8[Int].get
 
-        val r8 = SELF.R8[(Long, Boolean)].get
-        val maxContestedPosition = r8._1
-        val contested = r8._2
+        val r7 = SELF.R7[(Long, Boolean)].get
+        val maxContestedPosition = r7._1
+        val contested = r7._2
         if (contested) {
           // tree leaf provided
           val currentContestedPosition = maxContestedPosition + 1
@@ -117,25 +118,28 @@
           val proof = getVar[Coll[Byte]](8).get
           val currentPosition = SELF.R5[(Long, Coll[Byte])].get._1
           val history = SELF.R4[AvlTree].get
-          val properProof = history.get(keyBytes, proof).get == message && currentContestedPosition < currentPosition
+          val properProof = history.get(keyBytes, proof).get ==  (aBytes ++ zBytes) &&
+                            currentContestedPosition < currentPosition
 
-          val outR8 = selfOutput.R8[(Long, Boolean)].get
-          val outR8Valid = outR8._1 == currentContestedPosition && outR8._2 == false
+          val outR7 = selfOutput.R7[(Long, Boolean)].get
+          val outR7Valid = outR7._1 == currentContestedPosition && outR7._2 == false
 
-          properProof && properSignature && selfPreservationExceptR8 && outR8Valid
+          properProof && properSignature && selfPreservationExceptR7 && outR7Valid
         } else {
           // tree leaf asked
-          val outR8 = selfOutput.R8[(Long, Boolean)].get
-          val outR8Valid = outR8._1 == maxContestedPosition && outR8._2 == true
+          val outR7 = selfOutput.R7[(Long, Boolean)].get
+          val outR7Valid = outR7._1 == maxContestedPosition && outR7._2 == true
           // todo: move deadline
-          selfPreservationExceptR8 && outR8Valid
+          selfPreservationExceptR7 && outR7Valid
         }
-      }  else if (action == -4) {
-        val selfOutput = OUTPUTS(0)
+      } else if (action == -4) {
+
         // earlier reserve exists (collateral not seized)
-        val r7 = SELF.R7[(Long, Coll[Byte])].get
-        val redeemPosition = r7._1
-        val redeemReserveId = r7._2
+
+        val selfOutput = OUTPUTS(0)
+        val r6 = SELF.R6[(Long, Coll[Byte])].get
+        val redeemPosition = r6._1
+        val redeemReserveId = r6._2
         val alternativePosition = getVar[Long](1).get
         val redeemReserve = CONTEXT.dataInputs(0)
         val altReserve = CONTEXT.dataInputs(1)
@@ -144,13 +148,16 @@
                                selfOutput.value == SELF.value &&
                                selfOutput.R4[AvlTree].get == SELF.R4[AvlTree].get &&
                                selfOutput.R5[(Long, Coll[Byte])].get == SELF.R5[(Long, Coll[Byte])].get &&
-                               selfOutput.R6[Coll[Coll[Byte]]].get == SELF.R6[Coll[Coll[Byte]]].get &&
-                               selfOutput.R7[(Long, Coll[Byte])].get == SELF.R7[(Long, Coll[Byte])].get &&
-                               selfOutput.R8[(Long, Boolean)].get == SELF.R8[(Long, Boolean)].get &&
-                               selfOutput.R9[Int].get == SELF.R9[Int].get
+                               selfOutput.R6[(Long, Coll[Byte])].get == SELF.R6[(Long, Coll[Byte])].get &&
+                               selfOutput.R7[(Long, Boolean)].get == SELF.R7[(Long, Boolean)].get &&
+                               selfOutput.R8[Int].get == SELF.R8[Int].get
 
         // todo: implement alternative position and reserve id check
         altReserve.value >= redeemReserve.value && alternativePosition < redeemPosition && selfPreservation
+      } else if (action == -5) {
+        // tree cut - collateral seized
+        // todo: impl
+        false
       } else {
         // no more actions supported
         false
