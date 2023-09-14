@@ -6,7 +6,7 @@
     //
     // Registers:
     // R4: history tree (position -> (a, z)), where (a, z) is sig for (tree hash, reserve id, note id, note value, next reserve id)
-    // R5: (holder position, holder reserve id)
+    // R5: (holder position, (holder reserve id, note id))
     // R6: (redeem position, redeem reserve id)
     // R7: (max contested position, contestMode) - initially (-1, false)
     // R8: deadline
@@ -33,9 +33,9 @@
         // wrong reserve id
         // we check that last leaf in the tree is having current holder reserve id
 
-        val r5 = SELF.R5[(Long, Coll[Byte])].get
+        val r5 = SELF.R5[(Long, (Coll[Byte], Coll[Byte]))].get
         val holderPosition = r5._1
-        val holderReserveId = r5._2
+        val holderReserveId = r5._2._1
         val pos = holderPosition - 1
 
         val treeHashDigest = getVar[Coll[Byte]](1).get
@@ -79,7 +79,7 @@
         val selfPreservationExceptR7 = selfOutput.tokens == SELF.tokens &&
                                        selfOutput.value == SELF.value &&
                                        selfOutput.R4[AvlTree].get == SELF.R4[AvlTree].get &&
-                                       selfOutput.R5[(Long, Coll[Byte])].get == SELF.R5[(Long, Coll[Byte])].get &&
+                                       selfOutput.R5[(Long, (Coll[Byte], Coll[Byte]))].get == SELF.R5[(Long, (Coll[Byte], Coll[Byte]))].get &&
                                        selfOutput.R6[(Long, Coll[Byte])].get == SELF.R6[(Long, Coll[Byte])].get &&
                                        selfOutput.R7[(Long, Boolean)].get == SELF.R7[(Long, Boolean)].get &&
                                        selfOutput.R8[Int].get == SELF.R8[Int].get
@@ -116,9 +116,9 @@
           val keyBytes = longToByteArray(currentContestedPosition)
 
           val proof = getVar[Coll[Byte]](8).get
-          val currentPosition = SELF.R5[(Long, Coll[Byte])].get._1
+          val currentPosition = SELF.R5[(Long, (Coll[Byte], Coll[Byte]))].get._1
           val history = SELF.R4[AvlTree].get
-          val properProof = history.get(keyBytes, proof).get ==  (aBytes ++ zBytes) &&
+          val properProof = history.get(keyBytes, proof).get == (aBytes ++ zBytes) &&
                             currentContestedPosition < currentPosition
 
           val outR7 = selfOutput.R7[(Long, Boolean)].get
@@ -147,7 +147,7 @@
         val selfPreservation = selfOutput.tokens == SELF.tokens &&
                                selfOutput.value == SELF.value &&
                                selfOutput.R4[AvlTree].get == SELF.R4[AvlTree].get &&
-                               selfOutput.R5[(Long, Coll[Byte])].get == SELF.R5[(Long, Coll[Byte])].get &&
+                               selfOutput.R5[(Long, (Coll[Byte], Coll[Byte]))].get == SELF.R5[(Long, (Coll[Byte], Coll[Byte]))].get &&
                                selfOutput.R6[(Long, Coll[Byte])].get == SELF.R6[(Long, Coll[Byte])].get &&
                                selfOutput.R7[(Long, Boolean)].get == SELF.R7[(Long, Boolean)].get &&
                                selfOutput.R8[Int].get == SELF.R8[Int].get
@@ -156,6 +156,7 @@
         altReserve.value >= redeemReserve.value && alternativePosition < redeemPosition && selfPreservation
       } else if (action == -5) {
         // tree cut - collateral seized
+        // here, we check that there is a tree having proofs for prev
         // todo: impl
         false
       } else {
