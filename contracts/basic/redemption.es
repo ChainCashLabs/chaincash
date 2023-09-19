@@ -5,8 +5,8 @@
     // #0 - redemption contract token
     //
     // Registers:
-    // R4: history tree (position -> (a, z)), where (a, z) is sig for (tree hash, reserve id, note id, note value, next reserve id)
-    // R5: (holder position, (holder reserve id, note id))
+    // R4: history tree (position -> (a, z)), where (a, z) is sig for (tree hash, reserve id, note id, note value, prev note id)
+    // R5: max position in the tree
     // R6: (redeem position, redeem reserve id)
     // R7: (max contested position, contestMode) - initially (-1, false)
     // R8: deadline
@@ -14,7 +14,7 @@
     // 720 blocks for contestation
 
     // Dispute actions:
-    // * wrong holder reserve id - collateral seized
+    // * wrong holder reserve id or note id - collateral seized
     // * wrong collateral - collateral seized
     // * tree leaf not known (collateral not seized)
     // * earlier reserve exists (collateral not seized)
@@ -23,6 +23,7 @@
     // * wrong value transition - collateral seized
     // * wrong leaf - collateral seized
     // * wrond redeem reserve id - collateral seized
+    // * wrong position (there is a leaf in the tree with the same position) - collateral seized
 
     val action = getVar[Byte](0).get
 
@@ -30,25 +31,22 @@
     val r: Boolean = if (action < 0) {
       // dispute
       if (action == -1) {
-        // wrong reserve id
+        // wrong holder reserve id
         // we check that last leaf in the tree is having current holder reserve id
 
-        val r5 = SELF.R5[(Long, (Coll[Byte], Coll[Byte]))].get
-        val holderPosition = r5._1
-        val holderReserveId = r5._2._1
-        val pos = holderPosition - 1
+        val maxPos = SELF.R5[Long].get
 
         val treeHashDigest = getVar[Coll[Byte]](1).get
         val reserveId = getVar[Coll[Byte]](2).get
         val noteId = getVar[Coll[Byte]](3).get
         val noteValue = getVar[Long](4).get
-        val nextReserveId = getVar[Coll[Byte]](5).get
+        val prevNoteId = getVar[Coll[Byte]](5).get
         val a = getVar[GroupElement](6).get
         val aBytes = a.getEncoded
         val zBytes = getVar[Coll[Byte]](7).get
         val properFormat = treeHashDigest.size == 32 && reserveId.size == 32 &&
-                           noteId.size == 32 && nextReserveId.size == 32
-        val message = treeHashDigest ++ reserveId ++ noteId ++ longToByteArray(noteValue) ++ nextReserveId
+                           noteId.size == 32 && prevNoteId.size == 32
+        val message = treeHashDigest ++ reserveId ++ noteId ++ longToByteArray(noteValue) ++ prevNoteId
 
         // Computing challenge
         val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
@@ -63,11 +61,11 @@
 
         val proof = getVar[Coll[Byte]](8).get
         val history = SELF.R4[AvlTree].get
-        val keyBytes = longToByteArray(pos)
+        val keyBytes = longToByteArray(maxPos)
         val properProof = history.get(keyBytes, proof).get == (aBytes ++ zBytes)
 
         // preservation not checked so collateral could be fully spent
-        properSignature && properProof && (nextReserveId == holderReserveId)
+        properSignature && properProof
       } else if (action == -2) {
         // wrong collateral
         SELF.value != 2000000000 // 2 ERG, make collateral configurable via data-input
@@ -79,7 +77,7 @@
         val selfPreservationExceptR7 = selfOutput.tokens == SELF.tokens &&
                                        selfOutput.value == SELF.value &&
                                        selfOutput.R4[AvlTree].get == SELF.R4[AvlTree].get &&
-                                       selfOutput.R5[(Long, (Coll[Byte], Coll[Byte]))].get == SELF.R5[(Long, (Coll[Byte], Coll[Byte]))].get &&
+                                       selfOutput.R5[Long].get == SELF.R5[Long].get &&
                                        selfOutput.R6[(Long, Coll[Byte])].get == SELF.R6[(Long, Coll[Byte])].get &&
                                        selfOutput.R7[(Long, Boolean)].get == SELF.R7[(Long, Boolean)].get &&
                                        selfOutput.R8[Int].get == SELF.R8[Int].get
@@ -94,13 +92,13 @@
           val reserveId = getVar[Coll[Byte]](2).get
           val noteId = getVar[Coll[Byte]](3).get
           val noteValue = getVar[Long](4).get
-          val nextReserveId = getVar[Coll[Byte]](5).get
+          val prevNoteId = getVar[Coll[Byte]](5).get
           val a = getVar[GroupElement](6).get
           val aBytes = a.getEncoded
           val zBytes = getVar[Coll[Byte]](7).get
           val properFormat = treeHashDigest.size == 32 && reserveId.size == 32 &&
-                              noteId.size == 32 && nextReserveId.size == 32
-          val message = treeHashDigest ++ reserveId ++ noteId ++ longToByteArray(noteValue) ++ nextReserveId
+                              noteId.size == 32 && prevNoteId.size == 32
+          val message = treeHashDigest ++ reserveId ++ noteId ++ longToByteArray(noteValue) ++ prevNoteId
 
           // Computing challenge
           val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
@@ -118,11 +116,11 @@
           val proof = getVar[Coll[Byte]](8).get
           val currentPosition = SELF.R5[(Long, (Coll[Byte], Coll[Byte]))].get._1
           val history = SELF.R4[AvlTree].get
-          val properProof = history.get(keyBytes, proof).get == (aBytes ++ zBytes) &&
-                            currentContestedPosition < currentPosition
+          val properProof = history.get(keyBytes, proof).get == (aBytes ++ zBytes)
 
           val outR7 = selfOutput.R7[(Long, Boolean)].get
-          val outR7Valid = outR7._1 == currentContestedPosition && outR7._2 == false
+          val outPositionCorrect = currentContestedPosition
+          val outR7Valid = outR7._1 == outPositionCorrect && outR7._2 == false
 
           properProof && properSignature && selfPreservationExceptR7 && outR7Valid
         } else {
@@ -130,7 +128,11 @@
           val outR7 = selfOutput.R7[(Long, Boolean)].get
           val outR7Valid = outR7._1 == maxContestedPosition && outR7._2 == true
           // todo: move deadline
-          selfPreservationExceptR7 && outR7Valid
+          if (maxContestedPosition == SELF.R5[Long].get) {
+            false
+          } else {
+            selfPreservationExceptR7 && outR7Valid
+          }
         }
       } else if (action == -4) {
 
@@ -147,7 +149,7 @@
         val selfPreservation = selfOutput.tokens == SELF.tokens &&
                                selfOutput.value == SELF.value &&
                                selfOutput.R4[AvlTree].get == SELF.R4[AvlTree].get &&
-                               selfOutput.R5[(Long, (Coll[Byte], Coll[Byte]))].get == SELF.R5[(Long, (Coll[Byte], Coll[Byte]))].get &&
+                               selfOutput.R5[Long].get == SELF.R5[Long].get &&
                                selfOutput.R6[(Long, Coll[Byte])].get == SELF.R6[(Long, Coll[Byte])].get &&
                                selfOutput.R7[(Long, Boolean)].get == SELF.R7[(Long, Boolean)].get &&
                                selfOutput.R8[Int].get == SELF.R8[Int].get
@@ -158,6 +160,9 @@
         // tree cut - collateral seized
         // here, we check that there is a tree having proofs for prev
         // todo: impl
+        false
+      } else if (action == -6) {
+        // double spend
         false
       } else {
         // no more actions supported

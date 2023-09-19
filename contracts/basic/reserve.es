@@ -68,6 +68,7 @@
       // top up
       sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added
     } else {
+      // refund
       // todo: write tests for refund paths, document them
       if (action == 2) {
         // init refund
