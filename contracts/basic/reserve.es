@@ -28,10 +28,13 @@
 
       val g: GroupElement = groupGenerator
 
-      val noteInput = INPUTS(0)
-      val noteTokenId = noteInput.tokens(0)._1
-      val noteValue = noteInput.tokens(0)._2
-      val history = noteInput.R4[AvlTree].get
+      val redemptionContractTokenId = fromBase58("...") // todo: read from outer environment
+
+      val redemptionInput = INPUTS(0)
+      val redemptionInputOk == redemptionInput.tokens(0)._1 == redemptionContractTokenId
+
+      val history = redemptionInput.R4[AvlTree].get
+      val redeemPosition =
       val reserveId = SELF.tokens(0)._1
 
       val goldOracle = CONTEXT.dataInputs(0)

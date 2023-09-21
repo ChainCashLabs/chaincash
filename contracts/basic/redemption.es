@@ -7,7 +7,7 @@
     // Registers:
     // R4: history tree (position -> (a, z)), where (a, z) is sig for (prev tree hash, reserve id, note value, holder id)
     // R5: max position in the tree
-    // R6: (redeem position, redeem reserve id)
+    // R6: redeem position
     // R7: (max contested position, contestMode) - initially (-1, false)
     // R8: deadline
 
@@ -23,7 +23,6 @@
     // * wrong value transition - collateral seized
     // * wrong leaf (signature) in the tree  - collateral seized
     // * wrong link in the tree - collateral seized
-    // * wrond redeem reserve id @ redeem position - collateral seized
 
     val action = getVar[Byte](0).get
 
@@ -73,7 +72,7 @@
                                        selfOutput.value == SELF.value &&
                                        selfOutput.R4[AvlTree].get == SELF.R4[AvlTree].get &&
                                        selfOutput.R5[Long].get == SELF.R5[Long].get &&
-                                       selfOutput.R6[(Long, Coll[Byte])].get == SELF.R6[(Long, Coll[Byte])].get &&
+                                       selfOutput.R6[Long].get == SELF.R6[Long].get &&
                                        selfOutput.R7[(Long, Boolean)].get == SELF.R7[(Long, Boolean)].get &&
                                        selfOutput.R8[Int].get == SELF.R8[Int].get
 
@@ -134,9 +133,7 @@
         // earlier reserve exists (collateral not seized)
 
         val selfOutput = OUTPUTS(0)
-        val r6 = SELF.R6[(Long, Coll[Byte])].get
-        val redeemPosition = r6._1
-        val redeemReserveId = r6._2
+        val redeemPosition = SELF.R6[Long].get
         val alternativePosition = getVar[Long](1).get
         val redeemReserve = CONTEXT.dataInputs(0)
         val altReserve = CONTEXT.dataInputs(1)
@@ -145,7 +142,7 @@
                                selfOutput.value == SELF.value &&
                                selfOutput.R4[AvlTree].get == SELF.R4[AvlTree].get &&
                                selfOutput.R5[Long].get == SELF.R5[Long].get &&
-                               selfOutput.R6[(Long, Coll[Byte])].get == SELF.R6[(Long, Coll[Byte])].get &&
+                               selfOutput.R6[Long].get == SELF.R6[Long].get &&
                                selfOutput.R7[(Long, Boolean)].get == SELF.R7[(Long, Boolean)].get &&
                                selfOutput.R8[Int].get == SELF.R8[Int].get
 
