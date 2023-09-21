@@ -26,6 +26,8 @@
       // redeem path
       // oracle provides gold price in nanoErg per kg in its R4 register
 
+      // todo: prevent double redemption by maintaining a tree with redemptions
+
       val g: GroupElement = groupGenerator
 
       val redemptionContractTokenId = fromBase58("...") // todo: read from outer environment
@@ -34,39 +36,61 @@
       val redemptionInputOk == redemptionInput.tokens(0)._1 == redemptionContractTokenId
 
       val history = redemptionInput.R4[AvlTree].get
-      val redeemPosition =
-      val reserveId = SELF.tokens(0)._1
+      val redeemPosition = redemptionInput.R6[Long].get
+
+      // read last lead and redemption leaf
+
+      // checking redemption leaf signature
+      val rLeafTreeHashDigest = getVar[Coll[Byte]](1).get
+      val rLeafReserveId = getVar[Coll[Byte]](2).get
+      val rLeafNoteValue = getVar[Long](3).get
+      val rLeafHolderId = getVar[Coll[Byte]](4).get
+      val rLeafA = getVar[GroupElement](5).get
+      val rLeafABytes = rLeafA.getEncoded
+      val rLeafZBytes = getVar[Coll[Byte]](6).get
+      val rLeafProperFormat = rLeafTreeHashDigest.size == 32 && rLeafReserveId.size == 32 && rLeafHolderId.size == 32
+      val rLeafMessage = rLeafTreeHashDigest ++ rLeafReserveId ++ longToByteArray(rLeafNoteValue) ++ rLeafHolderId
+      val rLeafEInt = byteArrayToBigInt(blake2b256(rLeafMessage)) // weak Fiat-Shamir
+      val rLeafZ = byteArrayToBigInt(rLeafZBytes)
+      val rLeafReserveIdValid = rLeafReserve.tokens(0)._1 == rLeafReserveId
+      val rLeafReservePk = rLeafReserve.R4[GroupElement].get
+      val rLeafProperSignature = (g.exp(rLeafZ) == rLeafA.multiply(lastLeafReservePk.exp(rLeafEInt))) && rLeafProperFormat && rLeafReserveIdValid
+
+      // check holder's record signed
+      val holderTreeHashDigest = getVar[Coll[Byte]](7).get
+      val holderReserveId = getVar[Coll[Byte]](8).get
+      val holderNoteValue = getVar[Long](9).get
+      val holderHolderId = getVar[Coll[Byte]](10).get
+      val holderA = getVar[GroupElement](11).get
+      val holderABytes = holderA.getEncoded
+      val holderZBytes = getVar[Coll[Byte]](12).get
+      val holderProperFormat = holderTreeHashDigest.size == 32 && holderReserveId.size == 32 && holderHolderId.size == 32
+      val holderMessage = holderTreeHashDigest ++ holderReserveId ++ longToByteArray(holderNoteValue) ++ holderHolderId
+      val holderEInt = byteArrayToBigInt(blake2b256(holderMessage)) // weak Fiat-Shamir
+      val holderZ = byteArrayToBigInt(holderZBytes)
+      val holderReserveIdValid = holderReserve.tokens(0)._1 == holderReserveId
+      val holderReservePk = holderReserve.R4[GroupElement].get
+      val holderProperSignature = (g.exp(holderZ) == holderA.multiply(holderReservePk.exp(holderEInt))) && holderProperFormat && holderReserveIdValid
+
+      // checking tree proofs of inclusion for redemption and last leafs
+      val lastLeafPosition = redemptionInput.R5[Long].get
+      val lastLeafKeyBytes = longToByteArray(lastLeafPosition)
+      val rLeafPosition = redemptionInput.R6[Long].get
+      val rLeafKeyBytes = longToByteArray(rLeafPosition)
+      val proof = getVar[Coll[Byte]](13).get
+      val properProof = history.get(rLeafKeyBytes, proof).get == (rLeafABytes ++ rLeafZBytes) &&
+                        history.get(lastLeafKeyBytes, proof).get == (holderABytes ++ holderZBytes)
 
       val goldOracle = CONTEXT.dataInputs(0)
       val properOracle = goldOracle.tokens(0)._1 == fromBase58("2DfY1K4rW9zPVaQgaDp2KXgnErjxKPbbKF5mq1851MJE")
       val oracleRate = goldOracle.R4[Long].get / 1000000 // normalize to nanoerg per mg of gold
-      val tokensRedeemed = noteInput.tokens(0)._2 // 1 token == 1 mg of gold
+      val tokensRedeemed = holderNoteValue // 1 token == 1 mg of gold
 
       // 2% redemption fee
       val nanoergsToRedeem = tokensRedeemed * oracleRate * 98 / 100
       val redeemCorrect = (SELF.value - selfOut.value) <= nanoergsToRedeem
 
-      val proof = getVar[Coll[Byte]](1).get
-      val value = history.get(reserveId, proof).get
-
-      val aBytes = value.slice(0, 33)
-      val zBytes = value.slice(33, value.size)
-      val a = decodePoint(aBytes)
-      val z = byteArrayToBigInt(zBytes)
-
-      val maxValueBytes = getVar[Coll[Byte]](2).get
-      val message = maxValueBytes ++ noteTokenId
-      val maxValue = byteArrayToLong(maxValueBytes)
-
-      // Computing challenge
-      val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
-      val eInt = byteArrayToBigInt(e) // challenge as big integer
-
-      // Signature is valid if g^z = a * x^e
-      val properSignature = (g.exp(z) == a.multiply(ownerKey.exp(eInt))) &&
-                             noteValue <= maxValue
-
-      sigmaProp(selfPreserved && redeemCorrect && properSignature && properOracle)
+      sigmaProp(selfPreserved && redeemCorrect && rLeafProperSignature && holderProperSignature && properProof && properOracle)
     } else if (action == 1) {
       // top up
       sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added

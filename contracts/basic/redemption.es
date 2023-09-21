@@ -27,7 +27,7 @@
     val action = getVar[Byte](0).get
 
     // todo: split into action contracts like in dexy
-    val r: Boolean = if (action < 0) {
+    if (action < 0) {
       // dispute
       if (action == -1) {
         // wrong max position (R5 register)
@@ -62,7 +62,7 @@
         val properProof = history.get(keyBytes, proof).get == (aBytes ++ zBytes)
 
         // preservation not checked so collateral could be fully spent
-        properSignature && properProof
+        sigmaProp(properSignature && properProof)
       } else if (action == -2) {
         // tree leaf contents is asked or provided
 
@@ -115,7 +115,7 @@
           val outPositionCorrect = currentContestedPosition
           val outR7Valid = outR7._1 == outPositionCorrect && outR7._2 == false
 
-          properProof && properSignature && selfPreservationExceptR7 && outR7Valid
+          sigmaProp(properProof && properSignature && selfPreservationExceptR7 && outR7Valid)
         } else {
           // tree leaf asked
           val outR7 = selfOutput.R7[(Long, Boolean)].get
@@ -123,9 +123,9 @@
           // todo: move deadline
           if (maxContestedPosition == SELF.R5[Long].get) {
             // can't ask for more leafs when the whole tree walked through
-            false
+            sigmaProp(false)
           } else {
-            selfPreservationExceptR7 && outR7Valid
+            sigmaProp(selfPreservationExceptR7 && outR7Valid)
           }
         }
       } else if (action == -3) {
@@ -147,7 +147,7 @@
                                selfOutput.R8[Int].get == SELF.R8[Int].get
 
         // todo: implement alternative position and reserve id check
-        altReserve.value >= redeemReserve.value && alternativePosition < redeemPosition && selfPreservation
+        sigmaProp(altReserve.value >= redeemReserve.value && alternativePosition < redeemPosition && selfPreservation)
       } else if (action == -4) {
         // tree cut - collateral seized
         // here, we check that there is a signature from current holder for a record after last tree's leaf
@@ -199,19 +199,48 @@
         // checking link between the last leaf and holder record
         val linkCorrect = SELF.R4[AvlTree].get.digest == holderTreeHashDigest && holderReserveId == lastLeafHolderId
 
-        lastLeafProperSignature && properProof && holderProperSignature && linkCorrect
+        sigmaProp(lastLeafProperSignature && properProof && holderProperSignature && linkCorrect)
       } else if (action == -6) {
         // double spend
-        false
+        sigmaProp(false)
       } else {
         // no more actions supported
-        false
+        sigmaProp(false)
       }
     } else {
       // redemption
-      // todo: implement
-      false
-    }
 
-    sigmaProp(r)
+      val g: GroupElement = groupGenerator
+
+      // checking last leaf signature
+      val lastLeafReserve = CONTEXT.dataInputs(1)
+      val lastLeafTreeHashDigest = getVar[Coll[Byte]](1).get
+      val lastLeafReserveId = getVar[Coll[Byte]](2).get
+      val lastLeafNoteValue = getVar[Long](3).get
+      val lastLeafHolderId = getVar[Coll[Byte]](4).get
+      val lastLeafA = getVar[GroupElement](5).get
+      val lastLeafABytes = lastLeafA.getEncoded
+      val lastLeafZBytes = getVar[Coll[Byte]](6).get
+      val lastLeafProperFormat = lastLeafTreeHashDigest.size == 32 && lastLeafReserveId.size == 32 && lastLeafHolderId.size == 32
+      val lastLeafMessage = lastLeafTreeHashDigest ++ lastLeafReserveId ++ longToByteArray(lastLeafNoteValue) ++ lastLeafHolderId
+      val lastLeafEInt = byteArrayToBigInt(blake2b256(lastLeafMessage)) // weak Fiat-Shamir
+      val lastLeafZ = byteArrayToBigInt(lastLeafZBytes)
+      val lastLeafReserveIdValid = lastLeafReserve.tokens(0)._1 == lastLeafReserveId
+      val lastLeafReservePk = lastLeafReserve.R4[GroupElement].get
+      val lastLeafProperSignature = (g.exp(lastLeafZ) == lastLeafA.multiply(lastLeafReservePk.exp(lastLeafEInt))) && lastLeafProperFormat && lastLeafReserveIdValid
+
+      // checking last leaf tree proof
+      val lastLeafPosition = SELF.R5[Long].get
+      val keyBytes = longToByteArray(lastLeafPosition)
+      val proof = getVar[Coll[Byte]](7).get
+      val history = SELF.R4[AvlTree].get
+      val properProof = history.get(keyBytes, proof).get == (lastLeafABytes ++ lastLeafZBytes)
+
+      // check holder pubkey
+      val holderReserve = CONTEXT.dataInputs(2)
+      val holderPk = holderReserve.R4[GroupElement].get
+      val holderCorrect = holderReserve.tokens(0)._1 == lastLeafHolderId
+
+      sigmaProp(lastLeafProperSignature && properProof && holderCorrect) && proveDlog(lastLeafReservePk)
+    }
 }
