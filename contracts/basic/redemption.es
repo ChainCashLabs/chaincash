@@ -15,7 +15,7 @@
 
     // Dispute actions:
     // * wrong position (there is a leaf in the tree with the same position) - collateral seized
-    // * wrong collateral - collateral seized
+    // * wrong collateral - done in redemption request contract
     // * tree leaf not known (collateral not seized)
     // * earlier reserve exists (collateral not seized)
     // * tree cut - collateral seized
@@ -63,9 +63,6 @@
 
         // preservation not checked so collateral could be fully spent
         properSignature && properProof
-      } else if (action == -2) {
-        // wrong collateral
-        SELF.value != 2000000000 // 2 ERG, make collateral configurable via data-input
       } else if (action == -3) {
         // tree leaf contents is asked or provided
 

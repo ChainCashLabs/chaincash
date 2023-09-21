@@ -45,8 +45,13 @@ object Constants {
   val redemptionContract = scala.io.Source.fromFile("contracts/basic/redemption.es", "utf-8").getLines.mkString("\n")
   val redemptionErgoTree = compile(redemptionContract)
   val redemptionAddress = getAddressFromErgoTree(redemptionErgoTree)
+
+  val redemptionProducerContract = scala.io.Source.fromFile("contracts/basic/redproducer.es", "utf-8").getLines.mkString("\n")
+  val redemptionProducerErgoTree = compile(redemptionProducerContract)
+  val redemptionProducerAddress = getAddressFromErgoTree(redemptionProducerErgoTree)
 }
 
 object Printer extends App {
   println(Constants.redemptionAddress)
+  println(Constants.redemptionProducerAddress)
 }
