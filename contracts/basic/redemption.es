@@ -14,19 +14,20 @@
     // 720 blocks for contestation
 
     // Dispute actions:
-    // * wrong position (there is a leaf in the tree with the same position) - collateral seized
+    // * wrong position (there is a leaf in the tree with the same position) - collateral seized - done
     // * wrong collateral - done in redemption request contract
-    // * tree leaf not known (collateral not seized)
-    // * earlier reserve exists (collateral not seized)
-    // * tree cut - collateral seized
+    // * tree leaf not known (collateral not seized) - done
+    // * earlier reserve exists (collateral not seized) - done
+    // * tree cut - collateral seized - done
     // * double spend - collateral seized - to be done in reserve
     // * wrong value transition - collateral seized
-    // * wrong leaf in the tree  - collateral seized
+    // * wrong leaf (signature) in the tree  - collateral seized
+    // * wrong link in the tree - collateral seized
     // * wrond redeem reserve id @ redeem position - collateral seized
 
     val action = getVar[Byte](0).get
 
-    // todo: split into action contracts like dexy?
+    // todo: split into action contracts like in dexy
     val r: Boolean = if (action < 0) {
       // dispute
       if (action == -1) {
@@ -63,7 +64,7 @@
 
         // preservation not checked so collateral could be fully spent
         properSignature && properProof
-      } else if (action == -3) {
+      } else if (action == -2) {
         // tree leaf contents is asked or provided
 
         val selfOutput = OUTPUTS(0)
@@ -128,7 +129,7 @@
             selfPreservationExceptR7 && outR7Valid
           }
         }
-      } else if (action == -4) {
+      } else if (action == -3) {
 
         // earlier reserve exists (collateral not seized)
 
@@ -150,7 +151,7 @@
 
         // todo: implement alternative position and reserve id check
         altReserve.value >= redeemReserve.value && alternativePosition < redeemPosition && selfPreservation
-      } else if (action == -5) {
+      } else if (action == -4) {
         // tree cut - collateral seized
         // here, we check that there is a signature from current holder for a record after last tree's leaf
         // we have to check last leaf also, to check holder correctness
