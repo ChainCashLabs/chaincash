@@ -1,4 +1,6 @@
 {
+    // todo: rework note contracts to produce valid redemption, check that the new contract is compatible with redproducer
+
     // Note contract
 
     // It has two execution paths:
