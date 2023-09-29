@@ -23,6 +23,7 @@
     // * wrong value transition - collateral seized
     // * wrong leaf (signature) in the tree  - collateral seized
     // * wrong link in the tree - collateral seized
+    // * negative position in the tree - collateral seized
 
     val action = getVar[Byte](0).get
 
