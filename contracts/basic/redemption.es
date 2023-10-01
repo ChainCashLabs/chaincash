@@ -27,9 +27,9 @@
 
     val action = getVar[Byte](0).get
 
-    // todo: split into action contracts like in dexy
+    // todo: split into action contracts like done in dexy?
     if (action < 0) {
-      // dispute
+      // all the dispute are labelled with negative action ids
       if (action == -1) {
         // wrong max position (R5 register)
         // we check that there is leaf in the tree with current position exists
