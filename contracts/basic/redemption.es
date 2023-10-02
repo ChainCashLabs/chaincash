@@ -1,5 +1,8 @@
 {
-    // redemption box contract
+    // Redemption box contract
+    //
+    // A box with this contract contains collateral and redemption data, and allows anyone to claim the collateral if
+    // redemption data is malformed
     //
     // Tokens:
     // #0 - redemption contract token
@@ -31,8 +34,9 @@
     if (action < 0) {
       // all the dispute are labelled with negative action ids
       if (action == -1) {
-        // wrong max position (R5 register)
+        // wrong max position (R5 register) claim
         // we check that there is leaf in the tree with current position exists
+        // if so, collateral can be spent
 
         val pos = SELF.R5[Long].get + 1
 
@@ -131,7 +135,7 @@
         }
       } else if (action == -3) {
 
-        // earlier reserve exists (collateral not seized)
+        // earlier reserve exists (collateral not seized, as a reserve can be increased after redemption box created)
 
         val selfOutput = OUTPUTS(0)
         val redeemPosition = SELF.R6[Long].get
@@ -147,7 +151,7 @@
                                selfOutput.R7[(Long, Boolean)].get == SELF.R7[(Long, Boolean)].get &&
                                selfOutput.R8[Int].get == SELF.R8[Int].get
 
-        // todo: implement alternative position and reserve id check
+        // todo: implement alternative position and reserve id check, proof for alt reserve should be provided
         sigmaProp(altReserve.value >= redeemReserve.value && alternativePosition < redeemPosition && selfPreservation)
       } else if (action == -4) {
         // tree cut - collateral seized
