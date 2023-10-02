@@ -86,6 +86,7 @@
         val contested = r7._2
         if (contested) {
           // tree leaf provided
+          // todo: change path should be provided also likely
           val currentContestedPosition = maxContestedPosition + 1
           val reserve = CONTEXT.dataInputs(0)
 
