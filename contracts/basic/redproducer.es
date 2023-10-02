@@ -8,6 +8,8 @@
  // #0 - contract NFT
  // #1 - redemption request token
 
+ val redeemScriptHash = fromBase58("")
+
  val selfOutput = OUTPUTS(0)
  val redemptionRequestOutput = OUTPUTS(1)
 
@@ -31,8 +33,10 @@
 
  val redeemR7Correct = redeemR7._1 == -1 && redeemR7._2 == false
 
+ val redemptionScriptCorrect = blake2b256(redemptionRequestOutput.propositionBytes) == redeemScriptHash
+
  val redemptionRequestCorrect = redemptionTokenCorrect && properCollateral && properDeadline &&
-                                properRedeemPosition && redeemR7Correct
+                                properRedeemPosition && redeemR7Correct && redemptionScriptCorrect
 
  sigmaProp(selfOutCorrect && redemptionRequestCorrect)
 

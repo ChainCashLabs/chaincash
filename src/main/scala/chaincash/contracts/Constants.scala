@@ -52,6 +52,6 @@ object Constants {
 }
 
 object Printer extends App {
-  println(Constants.redemptionAddress)
-  println(Constants.redemptionProducerAddress)
+  println("Redemption p2s address: " + Constants.redemptionAddress)
+  println("Redemption producer p2s address: " + Constants.redemptionProducerAddress)
 }
