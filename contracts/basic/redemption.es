@@ -233,6 +233,37 @@
       } else if (action == -6) {
         // double spend
         sigmaProp(false)
+      } else if (action == -7) {
+        // negative position in the tree - collateral seized
+        val position = getVar[Long](1).get
+
+        val g: GroupElement = groupGenerator
+
+        val posReserve = CONTEXT.dataInputs(1)
+
+        // checking alt redeem leaf signature
+        val posLeafTreeHash = getVar[Coll[Byte]](2).get
+        val posLeafReserveId = getVar[Coll[Byte]](3).get
+        val posLeafNoteValue = getVar[Long](4).get
+        val posLeafHolderId = getVar[Coll[Byte]](5).get
+        val posLeafLeafA = getVar[GroupElement](6).get
+        val posLeafABytes = posLeafLeafA.getEncoded
+        val posLeafZBytes = getVar[Coll[Byte]](7).get
+        val posLeafProperFormat = posLeafTreeHash.size == 32 && posLeafReserveId.size == 32 && posLeafHolderId.size == 32
+        val posLeafMessage = posLeafTreeHash ++ posLeafReserveId ++ longToByteArray(posLeafNoteValue) ++ posLeafHolderId
+        val posLeafEInt = byteArrayToBigInt(blake2b256(posLeafMessage)) // weak Fiat-Shamir
+        val posLeafZ = byteArrayToBigInt(posLeafZBytes)
+        val posLeafReserveIdValid = posReserve.tokens(0)._1 == posLeafReserveId
+        val posLeafReservePk = posReserve.R4[GroupElement].get
+        val posLeafProperSignature = (g.exp(posLeafZ) == posLeafLeafA.multiply(posLeafReservePk.exp(posLeafEInt))) && posLeafProperFormat && posLeafReserveIdValid
+
+        // checking last leaf tree proof
+        val keyBytes = longToByteArray(position)
+        val proof = getVar[Coll[Byte]](8).get
+        val history = SELF.R4[AvlTree].get
+        val properProof = history.get(keyBytes, proof).get == (posLeafABytes ++ posLeafZBytes)
+
+        sigmaProp((position < 0) && posLeafProperSignature && properProof)
       } else {
         // no more actions supported
         sigmaProp(false)
