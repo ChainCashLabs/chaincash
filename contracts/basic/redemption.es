@@ -152,8 +152,32 @@
                                selfOutput.R7[(Long, Boolean)].get == SELF.R7[(Long, Boolean)].get &&
                                selfOutput.R8[Int].get == SELF.R8[Int].get
 
-        // todo: implement alternative position and reserve id check, proof for alt reserve should be provided
-        sigmaProp(altReserve.value >= redeemReserve.value && alternativePosition < redeemPosition && selfPreservation)
+        val g: GroupElement = groupGenerator
+
+        // checking alt redeem leaf signature
+        val altReserveLeafTreeHash = getVar[Coll[Byte]](2).get
+        val altReserveLeafReserveId = getVar[Coll[Byte]](3).get
+        val altReserveLeafNoteValue = getVar[Long](4).get
+        val altReserveLeafHolderId = getVar[Coll[Byte]](5).get
+        val altReserveLeafLeafA = getVar[GroupElement](6).get
+        val altReserveLeafABytes = altReserveLeafLeafA.getEncoded
+        val altReserveLeafZBytes = getVar[Coll[Byte]](7).get
+        val altReserveLeafProperFormat = altReserveLeafTreeHash.size == 32 && altReserveLeafReserveId.size == 32 && altReserveLeafHolderId.size == 32
+        val altReserveLeafMessage = altReserveLeafTreeHash ++ altReserveLeafReserveId ++ longToByteArray(altReserveLeafNoteValue) ++ altReserveLeafHolderId
+        val altReserveLeafEInt = byteArrayToBigInt(blake2b256(altReserveLeafMessage)) // weak Fiat-Shamir
+        val altReserveLeafZ = byteArrayToBigInt(altReserveLeafZBytes)
+        val altReserveLeafReserveIdValid = altReserve.tokens(0)._1 == altReserveLeafReserveId
+        val altReserveLeafReservePk = altReserve.R4[GroupElement].get
+        val altReserveLeafProperSignature = (g.exp(altReserveLeafZ) == altReserveLeafLeafA.multiply(altReserveLeafReservePk.exp(altReserveLeafEInt))) && altReserveLeafProperFormat && altReserveLeafReserveIdValid
+
+        // checking last leaf tree proof
+        val keyBytes = longToByteArray(alternativePosition)
+        val proof = getVar[Coll[Byte]](8).get
+        val history = SELF.R4[AvlTree].get
+        val properProof = history.get(keyBytes, proof).get == (altReserveLeafABytes ++ altReserveLeafZBytes)
+
+        sigmaProp(altReserve.value >= redeemReserve.value && alternativePosition < redeemPosition &&
+                    selfPreservation && altReserveLeafProperSignature && properProof)
       } else if (action == -4) {
         // tree cut - collateral seized
         // here, we check that there is a signature from current holder for a record after last tree's leaf
