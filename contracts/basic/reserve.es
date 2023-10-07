@@ -107,6 +107,7 @@
         val correctHeight = !(selfOut.R5[Int].isDefined)
         sigmaProp(selfPreserved && correctHeight) && proveDlog(ownerKey)
       } else if (action == 4) {
+        // todo: complete refund is not possible now , there must be some ergs left to allow sigs check
         // complete refund
         val refundNotificationPeriod = 7200 // 10 days
         val correctHeight = (SELF.R5[Int].get + refundNotificationPeriod) >= HEIGHT

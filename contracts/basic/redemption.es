@@ -232,6 +232,7 @@
         sigmaProp(lastLeafProperSignature && properProof && holderProperSignature && linkCorrect)
       } else if (action == -6) {
         // double spend
+        // double spend should be checked twice:
         sigmaProp(false)
       } else if (action == -7) {
         // negative position in the tree - collateral seized
@@ -263,6 +264,7 @@
         val history = SELF.R4[AvlTree].get
         val properProof = history.get(keyBytes, proof).get == (posLeafABytes ++ posLeafZBytes)
 
+        // collateral seized if position is negative and leaf with such position is known
         sigmaProp((position < 0) && posLeafProperSignature && properProof)
       } else {
         // no more actions supported
