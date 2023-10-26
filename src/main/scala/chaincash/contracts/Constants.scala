@@ -49,9 +49,14 @@ object Constants {
   val redemptionProducerContract = scala.io.Source.fromFile("contracts/basic/redproducer.es", "utf-8").getLines.mkString("\n")
   val redemptionProducerErgoTree = compile(redemptionProducerContract)
   val redemptionProducerAddress = getAddressFromErgoTree(redemptionProducerErgoTree)
+
+  val chainReserveContract = scala.io.Source.fromFile("contracts/chain/reserve.es", "utf-8").getLines.mkString("\n")
+  val chainReserveErgoTree = compile(chainReserveContract)
+  val chainReserveAddress = getAddressFromErgoTree(chainReserveErgoTree)
 }
 
 object Printer extends App {
   println("Redemption p2s address: " + Constants.redemptionAddress)
   println("Redemption producer p2s address: " + Constants.redemptionProducerAddress)
+  println("Chain reserve p2s address: " + Constants.chainReserveAddress)
 }
