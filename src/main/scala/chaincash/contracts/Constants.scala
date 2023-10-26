@@ -32,9 +32,9 @@ object Constants {
 
   val g: GroupElement = CGroupElement(CryptoConstants.dlogGroup.generator)
 
-  val noteContract = scala.io.Source.fromFile("contracts/initial/note.es", "utf-8").getLines.mkString("\n")
+  val noteContract = scala.io.Source.fromFile("contracts/onchain/note.es", "utf-8").getLines.mkString("\n")
 
-  val reserveContract = scala.io.Source.fromFile("contracts/initial/reserve.es", "utf-8").getLines.mkString("\n")
+  val reserveContract = scala.io.Source.fromFile("contracts/onchain/reserve.es", "utf-8").getLines.mkString("\n")
 
   val noteErgoTree = compile(noteContract)
   val noteAddress = getAddressFromErgoTree(noteErgoTree)
@@ -42,11 +42,11 @@ object Constants {
   val reserveErgoTree = compile(reserveContract)
   val reserveAddress = getAddressFromErgoTree(reserveErgoTree)
 
-  val redemptionContract = scala.io.Source.fromFile("contracts/basic/redemption.es", "utf-8").getLines.mkString("\n")
+  val redemptionContract = scala.io.Source.fromFile("contracts/layer2/redemption.es", "utf-8").getLines.mkString("\n")
   val redemptionErgoTree = compile(redemptionContract)
   val redemptionAddress = getAddressFromErgoTree(redemptionErgoTree)
 
-  val redemptionProducerContract = scala.io.Source.fromFile("contracts/basic/redproducer.es", "utf-8").getLines.mkString("\n")
+  val redemptionProducerContract = scala.io.Source.fromFile("contracts/layer2/redproducer.es", "utf-8").getLines.mkString("\n")
   val redemptionProducerErgoTree = compile(redemptionProducerContract)
   val redemptionProducerAddress = getAddressFromErgoTree(redemptionProducerErgoTree)
 }
