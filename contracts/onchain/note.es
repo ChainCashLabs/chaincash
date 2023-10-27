@@ -90,7 +90,6 @@
       // we just check current holder's signature here
 
       //todo: check that note token burnt
-      //todo: check that another box with the same tree and tokens could not be spent
 
       proveDlog(holder)
     }
