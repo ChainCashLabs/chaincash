@@ -71,11 +71,12 @@
       val tokensPreserved = if(changeIdx.isDefined) {
         val changeOutput = OUTPUTS(changeIdx.get)
 
-        // burn allowed
-        (selfOutput.tokens(0)._2 + changeOutput.tokens(0)._2) <= SELF.tokens(0)._2 &&
+        // strict equality to prevent moving tokens to other contracts
+        (selfOutput.tokens(0)._2 + changeOutput.tokens(0)._2) == SELF.tokens(0)._2 &&
             changeOutput.tokens(0)._1 == noteTokenId &&
             selfOutput.tokens(0)._1 == noteTokenId &&
-            changeOutput.propositionBytes == SELF.propositionBytes
+            changeOutput.propositionBytes == SELF.propositionBytes &&
+            changeOutput.R4[AvlTree].get.digest == outputDigest
       } else {
         selfOutput.tokens(0) == SELF.tokens(0)
       }
