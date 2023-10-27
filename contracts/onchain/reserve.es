@@ -30,17 +30,16 @@
 
       val noteInput = INPUTS(0)
       val noteTokenId = noteInput.tokens(0)._1
-      val noteValue = noteInput.tokens(0)._2
+      val noteValue = noteInput.tokens(0)._2 // 1 token == 1 mg of gold
       val history = noteInput.R4[AvlTree].get
       val reserveId = SELF.tokens(0)._1
 
       val goldOracle = CONTEXT.dataInputs(0)
       val properOracle = goldOracle.tokens(0)._1 == fromBase58("2DfY1K4rW9zPVaQgaDp2KXgnErjxKPbbKF5mq1851MJE")
       val oracleRate = goldOracle.R4[Long].get / 1000000 // normalize to nanoerg per mg of gold
-      val tokensRedeemed = noteInput.tokens(0)._2 // 1 token == 1 mg of gold
 
       // 2% redemption fee
-      val nanoergsToRedeem = tokensRedeemed * oracleRate * 98 / 100
+      val nanoergsToRedeem = noteValue * oracleRate * 98 / 100
       val redeemCorrect = (SELF.value - selfOut.value) <= nanoergsToRedeem
 
       val proof = getVar[Coll[Byte]](1).get
