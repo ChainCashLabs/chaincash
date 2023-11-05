@@ -90,7 +90,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
                 inputBoxes: Array[InputBox],
                 dataInputs: Array[InputBox],
                 boxesToCreate: Array[OutBoxImpl],
-                fee: Long,
+                fee: Option[Long],
                 changeAddress: String,
                 proveDlogSecrets: Array[String],
                 broadcast: Boolean
@@ -116,14 +116,18 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
 
     dataInputs.foreach(dataInputBoxes.add)
 
-    val txToSign = ctx
+    val txToSignNoFee = ctx
       .newTxBuilder()
       .boxesToSpend(inputs)
       .withDataInputs(dataInputBoxes)
       .outputs(outputBoxes: _*)
-      .fee(fee)
       .sendChangeTo(getAddressFromString(changeAddress))
-      .build()
+
+    val txToSign = (if(fee.isDefined){
+      txToSignNoFee.fee(fee.get)
+    } else {
+      txToSignNoFee
+    }).build()
 
     val proveDlogSecretsBigInt = proveDlogSecrets.map(decodeBigInt)
 
@@ -140,7 +144,9 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
   property("spending should work - no change") {
     createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
 
-      val msg: Array[Byte] = Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
+      val position = 0L
+
+      val msg: Array[Byte] = Longs.toByteArray(position) ++ Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
       val sig = SigUtils.sign(msg, holderSecret)
 
       val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
@@ -153,9 +159,9 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         ctx
           .newTxBuilder()
           .outBoxBuilder
-          .value(minValue + feeValue)
+          .value(minValue)
           .tokens(new ErgoToken(noteTokenId, noteValue))
-          .registers(Constants.emptyTreeErgoValue, ErgoValue.of(holderPk))
+          .registers(Constants.emptyTreeErgoValue, ErgoValue.of(holderPk), ErgoValue.of(position))
           .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.noteContract))
           .build()
           .convertToInputWith(fakeTxId1, fakeIndex)
@@ -180,7 +186,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val noteOutput = createOut(
         Constants.noteContract,
         minValue,
-        Array(ErgoValue.of(outTree), ErgoValue.of(holderPk)),
+        Array(ErgoValue.of(outTree), ErgoValue.of(holderPk), ErgoValue.of(position + 1)),
         Array(new ErgoToken(noteTokenId, 1))
       )
 
@@ -193,7 +199,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           inputs,
           dataInputs,
           outputs,
-          fee = feeValue,
+          fee = None,
           changeAddress,
           Array[String](),
           false
@@ -275,7 +281,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         inputs,
         dataInputs,
         outputs,
-        fee = feeValue ,
+        fee = None ,
         changeAddress,
         Array[String](holderSecret.toString()),
         false
@@ -393,7 +399,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           inputs,
           dataInputs,
           outputs,
-          fee = feeValue,
+          fee = None,
           changeAddress,
           Array[String](),
           false
@@ -442,7 +448,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         inputs,
         dataInputs,
         outputs,
-        fee = feeValue ,
+        fee = None ,
         changeAddress,
         Array[String](holderSecret.toString()),
         false
