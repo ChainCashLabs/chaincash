@@ -7,6 +7,8 @@
 
     // redeem:
 
+    // when redemption, receipt is created which is allowing to do another redemption against earlier reserve
+
     // to create a note, ...
 
     // box data:
@@ -14,6 +16,7 @@
     //      tree contains reserveId as a key, signature as value,
     //      and message is note value and token id
     // R5 - current holder of the note (public key given as a group element)
+    // R6 - current length of the chain (as long int)
 
     val g: GroupElement = groupGenerator
 
@@ -34,8 +37,10 @@
 
       val selfOutput = OUTPUTS(action)
 
+      val position = SELF.R6[Long].get
+      val positionBytes = longToByteArray(position)
       val noteValueBytes = longToByteArray(noteValue)
-      val message = noteValueBytes ++ noteTokenId
+      val message = positionBytes ++ noteValueBytes ++ noteTokenId
 
       // Computing challenge
       val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
@@ -62,28 +67,30 @@
       // This will fail if the operation failed or the proof is incorrect due to calling .get on the Option
       val outputDigest: Coll[Byte] = nextTree.get.digest
 
-      val insertionPerformed = selfOutput.R4[AvlTree].get.digest == outputDigest
-      val sameScript = selfOutput.propositionBytes == SELF.propositionBytes
-      val nextHolderDefined = selfOutput.R5[GroupElement].isDefined
+      def nextNoteCorrect(noteOut: Box): Boolean = {
+          val insertionPerformed = noteOut.R4[AvlTree].get.digest == outputDigest
+          val sameScript = noteOut.propositionBytes == SELF.propositionBytes
+          val nextHolderDefined = noteOut.R5[GroupElement].isDefined
+          val valuePreserved = noteOut.value >= SELF.value
+          val positionIncreased = noteOut.R6[Long].get == (position + 1)
+
+          positionIncreased && insertionPerformed && sameScript && nextHolderDefined && valuePreserved
+      }
 
       val changeIdx = getVar[Byte](4) // optional index of change output
 
-      val tokensPreserved = if(changeIdx.isDefined) {
+      val outputsValid = if(changeIdx.isDefined) {
         val changeOutput = OUTPUTS(changeIdx.get)
 
         // strict equality to prevent moving tokens to other contracts
         (selfOutput.tokens(0)._2 + changeOutput.tokens(0)._2) == SELF.tokens(0)._2 &&
-            changeOutput.tokens(0)._1 == noteTokenId &&
-            selfOutput.tokens(0)._1 == noteTokenId &&
-            changeOutput.propositionBytes == SELF.propositionBytes &&
-            changeOutput.R4[AvlTree].get.digest == outputDigest
+            nextNoteCorrect(selfOutput) &&
+            nextNoteCorrect(changeOutput)
       } else {
-        selfOutput.tokens(0) == SELF.tokens(0)
+        selfOutput.tokens(0) == SELF.tokens(0) && nextNoteCorrect(selfOutput)
       }
 
-      val valuePreserved = selfOutput.value >= SELF.value
-
-      sigmaProp(sameScript && insertionPerformed && properSignature && properReserve && nextHolderDefined && tokensPreserved)
+      sigmaProp(properSignature && outputsValid)
     } else {
       // redemption path
       // called by setting action variable to any negative value, -1 considered as standard by offchain apps
