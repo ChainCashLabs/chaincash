@@ -292,14 +292,17 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
   property("spending should work - multiple notes and change") {
     createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
 
+      val firstPosition = 0L
+      val secondPosition = 10L
+
       val firstNoteTokenId = noteTokenId
       val secondNoteTokenId = Base16.encode(Blake2b256.apply(noteTokenId))
 
       val firstNoteValue = 55
       val secondNoteValue = 60
 
-      val msg1: Array[Byte] = Longs.toByteArray(firstNoteValue) ++ Base16.decode(firstNoteTokenId).get
-      val msg2: Array[Byte] = Longs.toByteArray(secondNoteValue) ++ Base16.decode(secondNoteTokenId).get
+      val msg1: Array[Byte] = Longs.toByteArray(firstPosition) ++ Longs.toByteArray(firstNoteValue) ++ Base16.decode(firstNoteTokenId).get
+      val msg2: Array[Byte] = Longs.toByteArray(secondPosition) ++ Longs.toByteArray(secondNoteValue) ++ Base16.decode(secondNoteTokenId).get
       val sig1 = SigUtils.sign(msg1, holderSecret)
       val sig2 = SigUtils.sign(msg2, holderSecret)
 
@@ -319,9 +322,9 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         ctx
           .newTxBuilder()
           .outBoxBuilder
-          .value(2 * minValue)
+          .value(minValue)
           .tokens(new ErgoToken(firstNoteTokenId, firstNoteValue))
-          .registers(Constants.emptyTreeErgoValue, ErgoValue.of(holderPk))
+          .registers(Constants.emptyTreeErgoValue, ErgoValue.of(holderPk), ErgoValue.of(firstPosition))
           .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.noteContract))
           .build()
           .convertToInputWith(fakeTxId1, fakeIndex)
@@ -337,9 +340,9 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         ctx
           .newTxBuilder()
           .outBoxBuilder
-          .value(2 * minValue + feeValue)
+          .value(minValue)
           .tokens(new ErgoToken(secondNoteTokenId, secondNoteValue))
-          .registers(Constants.emptyTreeErgoValue, ErgoValue.of(holderPk))
+          .registers(Constants.emptyTreeErgoValue, ErgoValue.of(holderPk), ErgoValue.of(secondPosition))
           .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.noteContract))
           .build()
           .convertToInputWith(fakeTxId1, fakeIndex)
@@ -350,6 +353,15 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
             new ContextVar(3, ErgoValue.of(insertProof2.bytes)),
             new ContextVar(4, ErgoValue.of(3: Byte))
           )
+
+      val fundingBox =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(2 * minValue + feeValue)
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), fakeScript))
+          .build()
+          .convertToInputWith(fakeTxId1, fakeIndex)
 
       val reserveDataInput =
         ctx
@@ -365,32 +377,32 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val note1Output = createOut(
         Constants.noteContract,
         minValue,
-        registers = Array(ErgoValue.of(outTree1), ErgoValue.of(holderPk)),
+        registers = Array(ErgoValue.of(outTree1), ErgoValue.of(holderPk), ErgoValue.of(firstPosition + 1)),
         tokens = Array(new ErgoToken(firstNoteTokenId, 50))
       )
 
       val note1Change = createOut(
         Constants.noteContract,
         minValue,
-        registers = Array(ErgoValue.of(outTree1), ErgoValue.of(holderPk)),
+        registers = Array(ErgoValue.of(outTree1), ErgoValue.of(holderPk), ErgoValue.of(firstPosition + 1)),
         tokens = Array(new ErgoToken(firstNoteTokenId, 5))
       )
 
       val note2Output = createOut(
         Constants.noteContract,
         minValue,
-        registers = Array(ErgoValue.of(outTree2), ErgoValue.of(holderPk)),
+        registers = Array(ErgoValue.of(outTree2), ErgoValue.of(holderPk), ErgoValue.of(secondPosition + 1)),
         tokens = Array(new ErgoToken(secondNoteTokenId, 50))
       )
 
       val note2Change = createOut(
         Constants.noteContract,
         minValue,
-        registers = Array(ErgoValue.of(outTree2), ErgoValue.of(holderPk)),
+        registers = Array(ErgoValue.of(outTree2), ErgoValue.of(holderPk), ErgoValue.of(secondPosition + 1)),
         tokens = Array(new ErgoToken(secondNoteTokenId, 10))
       )
 
-      val inputs = Array[InputBox](firstNoteInput, secondNoteInput)
+      val inputs = Array[InputBox](firstNoteInput, secondNoteInput, fundingBox)
       val dataInputs = Array[InputBox](reserveDataInput)
       val outputs = Array[OutBoxImpl](note1Output, note2Output, note1Change, note2Change)
 
@@ -399,7 +411,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           inputs,
           dataInputs,
           outputs,
-          fee = None,
+          fee = Some(feeValue),
           changeAddress,
           Array[String](),
           false
