@@ -22,7 +22,7 @@
 
     val history = SELF.R4[AvlTree].get
 
-    val action = getVar[Byte](0).get
+    val action = getVar[Byte](0).get // also encodes note output # in tx outputs
 
     val noteTokenId = SELF.tokens(0)._1
     val noteValue = SELF.tokens(0)._2
