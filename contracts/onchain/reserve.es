@@ -51,7 +51,8 @@
       val z = byteArrayToBigInt(zBytes)
 
       val maxValueBytes = getVar[Coll[Byte]](2).get
-      val message = maxValueBytes ++ noteTokenId
+      val position = getVar[Long](3).get
+      val message = longToByteArray(position) ++ maxValueBytes ++ noteTokenId
       val maxValue = byteArrayToLong(maxValueBytes)
 
       // Computing challenge
@@ -62,7 +63,15 @@
       val properSignature = (g.exp(z) == a.multiply(ownerKey.exp(eInt))) &&
                              noteValue <= maxValue
 
-      sigmaProp(selfPreserved && redeemCorrect && properSignature && properOracle)
+      // todo: check receipt output contract
+      val receiptOut = OUTPUTS(1)
+      val properReceipt =
+        receiptOut.tokens(0) == noteInput.tokens(0) &&
+        receiptOut.R4[AvlTree].get == history &&
+        receiptOut.R5[Long].get == position &&
+        receiptOut.R6[Int].get >= HEIGHT - 20 // 20 blocks for inclusion
+
+      sigmaProp(selfPreserved && properOracle && redeemCorrect && properSignature && properReceipt)
     } else if (action == 1) {
       // top up
       sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added

@@ -99,6 +99,8 @@
 
       //todo: check that note token burnt
 
+      // it is checked that note token is locked in recipt in the reserve contract
+
       proveDlog(holder)
     }
 
