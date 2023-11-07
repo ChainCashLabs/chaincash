@@ -28,6 +28,9 @@
 
       val g: GroupElement = groupGenerator
 
+      val receiptMode = getVar[Boolean](10).get
+
+      // read note data, id receiptMode == false, receipt data otherwise
       val noteInput = INPUTS(0)
       val noteTokenId = noteInput.tokens(0)._1
       val noteValue = noteInput.tokens(0)._2 // 1 token == 1 mg of gold
@@ -70,9 +73,16 @@
         receiptOut.R4[AvlTree].get == history  &&
         receiptOut.R5[Long].get == position    &&
         receiptOut.R6[Int].get >= HEIGHT - 20  &&  // 20 blocks for inclusion
-        receiptOut.R6[Int].get <= HEIGHT
+        receiptOut.R6[Int].get <= HEIGHT &&
+        receiptOut.R7[GroupElement].get == ownerKey
 
-      sigmaProp(selfPreserved && properOracle && redeemCorrect && properSignature && properReceipt)
+      val positionCorrect = if (receiptMode) {
+        position < noteInput.R5[Long].get
+      } else {
+        true
+      }
+
+      sigmaProp(selfPreserved && properOracle && redeemCorrect && properSignature && properReceipt && positionCorrect)
     } else if (action == 1) {
       // top up
       sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added
@@ -95,7 +105,5 @@
         sigmaProp(false)
       }
     }
-
-
 
 }

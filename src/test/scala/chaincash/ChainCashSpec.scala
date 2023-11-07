@@ -254,7 +254,8 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
             new ContextVar(0, ErgoValue.of(0: Byte)),
             new ContextVar(1, ErgoValue.of(lookupProof.bytes)),
             new ContextVar(2, ErgoValue.of(Longs.toByteArray(noteValue))),
-            new ContextVar(3, ErgoValue.of(position))
+            new ContextVar(3, ErgoValue.of(position)),
+            new ContextVar(10, ErgoValue.of(false))
           )
 
       val oracleRate = 500000L // nanoErg per mg
@@ -279,7 +280,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val receiptOutput = createOut(
         Constants.receiptContract,
         minValue,
-        registers = Array(ErgoValue.of(historyTree), ErgoValue.of(0L), ErgoValue.of(ctx.getHeight - 5)),
+        registers = Array(ErgoValue.of(historyTree), ErgoValue.of(0L), ErgoValue.of(ctx.getHeight - 5), ErgoValue.of(holderPk)),
         tokens = Array(new ErgoToken(noteTokenId, noteValue))
       )
 
@@ -428,6 +429,10 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         )
       }
     }
+  }
+
+  property("chain of redemptions") {
+    // todo: test receipt creation and redemption against earlier reserve
   }
 
   property("refund - init") {

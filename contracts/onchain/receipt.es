@@ -6,6 +6,7 @@
     // R4 - AvlTree - history of ownership for corresponding redeemed note
     // R5 - Long - redeemed position
     // R6 - approx. height when this box was created
+    // R7 - redeemer PK
 
     def noTokens(b: Box) = b.tokens.size == 0
     val noTokensInOutputs = OUTPUTS.forall(noTokens)
@@ -15,5 +16,5 @@
 
     val burnDone = (HEIGHT > creationHeight + burnPeriod) && noTokensInOutputs
 
-    burnDone // todo: any other conditions ?
+    burnDone || proveDlog(SELF.R7[GroupElement].get)
 }
