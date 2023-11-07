@@ -36,6 +36,8 @@ object Constants {
 
   val reserveContract = scala.io.Source.fromFile("contracts/onchain/reserve.es", "utf-8").getLines.mkString("\n")
 
+  val receiptContract = scala.io.Source.fromFile("contracts/onchain/receipt.es", "utf-8").getLines.mkString("\n")
+
   val noteErgoTree = compile(noteContract)
   val noteAddress = getAddressFromErgoTree(noteErgoTree)
 

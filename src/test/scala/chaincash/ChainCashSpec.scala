@@ -210,14 +210,16 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
 
   property("redemption should work") {
     createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
-      val msg: Array[Byte] = Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
+      val position = 0L
+
+      val msg: Array[Byte] = Longs.toByteArray(position) ++ Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
       val sig = SigUtils.sign(msg, holderSecret)
 
       val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
       val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray
       val insertRes = plasmaMap.insert(reserveNFTBytes -> sigBytes)
       val _ = insertRes.proof
-      val outTree = plasmaMap.ergoValue.getValue
+      val historyTree = plasmaMap.ergoValue.getValue
 
       val lookupRes = plasmaMap.lookUp(reserveNFTBytes)
       val lookupProof = lookupRes.proof
@@ -228,7 +230,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .outBoxBuilder
           .value(minValue + feeValue)
           .tokens(new ErgoToken(noteTokenId, noteValue))
-          .registers(ErgoValue.of(outTree), ErgoValue.of(holderPk))
+          .registers(ErgoValue.of(historyTree), ErgoValue.of(holderPk))
           .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.noteContract))
           .build()
           .convertToInputWith(fakeTxId1, fakeIndex)
@@ -251,7 +253,8 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .withContextVars(
             new ContextVar(0, ErgoValue.of(0: Byte)),
             new ContextVar(1, ErgoValue.of(lookupProof.bytes)),
-            new ContextVar(2, ErgoValue.of(Longs.toByteArray(noteValue)))
+            new ContextVar(2, ErgoValue.of(Longs.toByteArray(noteValue))),
+            new ContextVar(3, ErgoValue.of(position))
           )
 
       val oracleRate = 500000L // nanoErg per mg
@@ -273,9 +276,16 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         tokens = Array(new ErgoToken(reserveNFT, 1))
       )
 
+      val receiptOutput = createOut(
+        Constants.receiptContract,
+        minValue,
+        registers = Array(ErgoValue.of(historyTree), ErgoValue.of(0L), ErgoValue.of(ctx.getHeight - 5)),
+        tokens = Array(new ErgoToken(noteTokenId, noteValue))
+      )
+
       val inputs = Array[InputBox](noteInput, reserveInput)
       val dataInputs = Array[InputBox](oracleDataInput)
-      val outputs = Array[OutBoxImpl](reserveOutput)
+      val outputs = Array[OutBoxImpl](reserveOutput, receiptOutput)
 
       createTx(
         inputs,

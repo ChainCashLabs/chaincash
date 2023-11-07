@@ -67,9 +67,10 @@
       val receiptOut = OUTPUTS(1)
       val properReceipt =
         receiptOut.tokens(0) == noteInput.tokens(0) &&
-        receiptOut.R4[AvlTree].get == history &&
-        receiptOut.R5[Long].get == position &&
-        receiptOut.R6[Int].get >= HEIGHT - 20 // 20 blocks for inclusion
+        receiptOut.R4[AvlTree].get == history  &&
+        receiptOut.R5[Long].get == position    &&
+        receiptOut.R6[Int].get >= HEIGHT - 20  &&  // 20 blocks for inclusion
+        receiptOut.R6[Int].get <= HEIGHT
 
       sigmaProp(selfPreserved && properOracle && redeemCorrect && properSignature && properReceipt)
     } else if (action == 1) {
