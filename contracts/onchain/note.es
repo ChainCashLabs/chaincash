@@ -97,7 +97,9 @@
 
       // we just check current holder's signature here
 
-      // it is checked that note token is locked in recipt in the reserve contract
+      // it is checked that note token is locked in receipt in the reserve contract
+
+      // todo: check that reserve contract is also called
 
       proveDlog(holder)
     }

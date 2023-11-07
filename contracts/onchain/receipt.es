@@ -16,5 +16,7 @@
 
     val burnDone = (HEIGHT > creationHeight + burnPeriod) && noTokensInOutputs
 
-    burnDone || proveDlog(SELF.R7[GroupElement].get)
+    val reRedemption = proveDlog(SELF.R7[GroupElement].get) // todo: check that reserve contract is also called
+
+    burnDone || reRedemption
 }
