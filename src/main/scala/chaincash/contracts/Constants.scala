@@ -4,6 +4,8 @@ import io.getblok.getblok_plasma.PlasmaParameters
 import io.getblok.getblok_plasma.collections.PlasmaMap
 import org.ergoplatform.ErgoAddressEncoder
 import org.ergoplatform.appkit.{AppkitHelpers, ErgoValue, NetworkType}
+import scorex.crypto.hash.Blake2b256
+import scorex.util.encode.Base58
 import sigmastate.eval.CGroupElement
 import sigmastate.basics.CryptoConstants
 import sigmastate.AvlTreeFlags
@@ -22,6 +24,16 @@ object Constants {
 
   def getAddressFromErgoTree(ergoTree: ErgoTree) = ergoAddressEncoder.fromProposition(ergoTree).get
 
+  def substitute(contract: String, substitutionMap: Map[String, String] = Map.empty): String = {
+    substitutionMap.foldLeft(contract){case (c, (k,v)) =>
+      c.replace("$"+k, v)
+    }
+  }
+
+  def readContract(path: String, substitutionMap: Map[String, String] = Map.empty) = {
+    substitute(scala.io.Source.fromFile("contracts/" + path, "utf-8").getLines.mkString("\n"), substitutionMap)
+  }
+
   def compile(ergoScript: String): ErgoTree = {
     AppkitHelpers.compile(new util.HashMap[String, Object](), ergoScript, networkPrefix)
   }
@@ -32,17 +44,18 @@ object Constants {
 
   val g: GroupElement = CGroupElement(CryptoConstants.dlogGroup.generator)
 
-  val noteContract = scala.io.Source.fromFile("contracts/onchain/note.es", "utf-8").getLines.mkString("\n")
+  val reserveContract = readContract("onchain/reserve.es", Map.empty)
+  val reserveErgoTree = compile(reserveContract)
+  val reserveAddress = getAddressFromErgoTree(reserveErgoTree)
 
-  val reserveContract = scala.io.Source.fromFile("contracts/onchain/reserve.es", "utf-8").getLines.mkString("\n")
+  val rcHash = Blake2b256(reserveErgoTree.bytes.tail)
+  val rcHashString = Base58.encode(rcHash)
 
-  val receiptContract = scala.io.Source.fromFile("contracts/onchain/receipt.es", "utf-8").getLines.mkString("\n")
-
+  val noteContract = readContract("onchain/note.es", Map("reserveContractHash" -> rcHashString))
   val noteErgoTree = compile(noteContract)
   val noteAddress = getAddressFromErgoTree(noteErgoTree)
 
-  val reserveErgoTree = compile(reserveContract)
-  val reserveAddress = getAddressFromErgoTree(reserveErgoTree)
+  val receiptContract = readContract("onchain/receipt.es", Map("reserveContractHash" -> rcHashString))
 
   val redemptionContract = scala.io.Source.fromFile("contracts/layer2/redemption.es", "utf-8").getLines.mkString("\n")
   val redemptionErgoTree = compile(redemptionContract)
