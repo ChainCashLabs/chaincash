@@ -318,6 +318,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
 
     // forming history A -> B -> C -> current holder
     val aPosition = 0L
+    val aValue = 100L
     val msg0: Array[Byte] = Longs.toByteArray(aPosition) ++ Longs.toByteArray(100) ++ Base16.decode(noteTokenId).get
     val sig0 = SigUtils.sign(msg0, reserveASecret)
     val sig0Bytes = GroupElementSerializer.toBytes(sig0._1) ++ sig0._2.toByteArray
@@ -328,7 +329,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
     val sig1 = SigUtils.sign(msg1, reserveBSecret)
     val sig1Bytes = GroupElementSerializer.toBytes(sig1._1) ++ sig1._2.toByteArray
 
-    val finalNoteValue = 20
+    val finalNoteValue = 1
     val cPosition = 2L
     val msg2: Array[Byte] = Longs.toByteArray(cPosition) ++ Longs.toByteArray(finalNoteValue) ++ Base16.decode(noteTokenId).get
     val sig2 = SigUtils.sign(msg2, reserveCSecret)
@@ -343,6 +344,16 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       // we test chain of two redemptions here, first, holder of the note is redeeming against reserve B, and then
       // owner of B is redeeming against reserve A
 
+      val fundingBox =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(2 * minValue + feeValue)
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), fakeScript))
+          .build()
+          .convertToInputWith(fakeTxId1, fakeIndex)
+
+
       val oracleRate = 500000L // nanoErg per mg
       val oracleDataInput =
         ctx
@@ -354,7 +365,6 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .contract(ctx.compileContract(ConstantsBuilder.empty(), "{false}"))
           .build()
           .convertToInputWith(fakeTxId3, fakeIndex)
-
 
       val noteInput =
         ctx
@@ -373,7 +383,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val lookupBRes = plasmaMap.lookUp(reserveBNFTBytes)
       val lookupBProof = lookupBRes.proof
 
-      val reserveInput =
+      val reserveBInput =
         ctx
           .newTxBuilder()
           .outBoxBuilder
@@ -405,17 +415,68 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         tokens = Array(new ErgoToken(noteTokenId, finalNoteValue))
       )
 
-      val inputs = Array[InputBox](noteInput, reserveInput)
+      val inputs = Array[InputBox](noteInput, reserveBInput)
       val dataInputs = Array[InputBox](oracleDataInput)
       val outputs = Array[OutBoxImpl](reserveOutput, receiptOutput)
 
-      createTx(
+      val firstTx = createTx(
         inputs,
         dataInputs,
         outputs,
         fee = None ,
         changeAddress,
         Array[String](holderSecret.toString()),
+        false
+      )
+
+      val receiptInput = firstTx.getOutputsToSpend.get(1)
+
+      val lookupARes = plasmaMap.lookUp(reserveANFTBytes)
+      val lookupAProof = lookupARes.proof
+
+      val reserveAInput =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue)
+          .tokens(new ErgoToken(reserveANFT, 1))
+          .registers(ErgoValue.of(reserveAPk))
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.reserveContract))
+          .build()
+          .convertToInputWith(fakeTxId5, fakeIndex)
+          .withContextVars(
+            new ContextVar(0, ErgoValue.of(0: Byte)),
+            new ContextVar(1, ErgoValue.of(lookupAProof.bytes)),
+            new ContextVar(2, ErgoValue.of(Longs.toByteArray(aValue))),
+            new ContextVar(3, ErgoValue.of(aPosition)),
+            new ContextVar(10, ErgoValue.of(true))
+          )
+
+      val reserveAOutput = createOut(
+        Constants.reserveContract,
+        minValue - oracleRate * 98 / 100,
+        registers = Array(ErgoValue.of(reserveAPk)),
+        tokens = Array(new ErgoToken(reserveANFT, 1))
+      )
+
+      val receiptAOutput = createOut(
+        Constants.receiptContract,
+        minValue,
+        registers = Array(ErgoValue.of(historyTree), ErgoValue.of(aPosition), ErgoValue.of(ctx.getHeight - 5), ErgoValue.of(reserveAPk)),
+        tokens = Array(new ErgoToken(noteTokenId, finalNoteValue))
+      )
+
+      val inputs2 = Array[InputBox](receiptInput, reserveAInput, fundingBox)
+      val dataInputs2 = Array[InputBox](oracleDataInput)
+      val outputs2 = Array[OutBoxImpl](reserveAOutput, receiptAOutput)
+
+      createTx(
+        inputs2,
+        dataInputs2,
+        outputs2,
+        fee = Some(1000000) ,
+        changeAddress,
+        Array[String](reserveBSecret.toString()),
         false
       )
     }
