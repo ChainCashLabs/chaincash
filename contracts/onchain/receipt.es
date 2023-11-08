@@ -16,7 +16,14 @@
 
     val burnDone = (HEIGHT > creationHeight + burnPeriod) && noTokensInOutputs
 
-    val reRedemption = proveDlog(SELF.R7[GroupElement].get) // todo: check that reserve contract is also called
+    // we check that the receipt is spent along with a reserve contract box.
+    // for that, we fix reserve input position @ #1
+    // we drop version byte during ergotrees comparison
+    // signature of receipt holder is also required
+    val reserveInputErgoTree = INPUTS(1).propositionBytes
+    val treeHash = blake2b256(reserveInputErgoTree.slice(1, reserveInputErgoTree.size))
+    val reserveSpent = treeHash == fromBase58("2DfY1K4rW9zPVaQgaDp2KXgnErjxKPbbKF5mq1851MJE")
+    val reRedemption = proveDlog(SELF.R7[GroupElement].get) && sigmaProp(reserveSpent)
 
     burnDone || reRedemption
 }

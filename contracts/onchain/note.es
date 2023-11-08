@@ -99,9 +99,15 @@
 
       // it is checked that note token is locked in receipt in the reserve contract
 
-      // todo: check that reserve contract is also called
+      // we check that the note is spent along with a reserve contract box.
+      // for that, we fix reserve input position @ #1
+      // we drop version byte during ergotrees comparison
+      // signature of note holder is also required
 
-      proveDlog(holder)
+      val reserveInputErgoTree = INPUTS(1).propositionBytes
+      val treeHash = blake2b256(reserveInputErgoTree.slice(1, reserveInputErgoTree.size))
+      val reserveSpent = treeHash == fromBase58("2DfY1K4rW9zPVaQgaDp2KXgnErjxKPbbKF5mq1851MJE")
+      proveDlog(holder) && sigmaProp(reserveSpent)
     }
 
 }
