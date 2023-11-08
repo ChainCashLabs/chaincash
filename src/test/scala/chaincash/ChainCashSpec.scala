@@ -235,9 +235,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .build()
           .convertToInputWith(fakeTxId1, fakeIndex)
           .withContextVars(
-            new ContextVar(0, ErgoValue.of(-1: Byte)),
-            new ContextVar(2, ErgoValue.of(Array.emptyByteArray)),
-            new ContextVar(3, ErgoValue.of(Array.emptyByteArray))
+            new ContextVar(0, ErgoValue.of(-1: Byte))
           )
 
       val reserveInput =
@@ -299,6 +297,130 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       )
     }
   }
+
+  property("chain of redemptions") {
+    val reserveASecret = SigUtils.randBigInt
+    val reserveAPk = Constants.g.exp(reserveASecret.bigInteger)
+    val reserveBSecret = SigUtils.randBigInt
+    val reserveBPk = Constants.g.exp(reserveBSecret.bigInteger)
+    val reserveCSecret = SigUtils.randBigInt
+    val reserveCPk = Constants.g.exp(reserveCSecret.bigInteger)
+
+    val reserveANFT = "121A3A5250655368566D597133743677397A24432646294A404D635166546A57"
+    val reserveANFTBytes = Base16.decode(reserveANFT).get
+    val reserveBNFT = "221A3A5250655368566D597133743677397A24432646294A404D635166546A57"
+    val reserveBNFTBytes = Base16.decode(reserveBNFT).get
+    val reserveCNFT = "321A3A5250655368566D597133743677397A24432646294A404D635166546A57"
+    val reserveCNFTBytes = Base16.decode(reserveCNFT).get
+
+    val holderSecret = SigUtils.randBigInt
+    val holderPk = Constants.g.exp(holderSecret.bigInteger)
+
+    // forming history A -> B -> C -> current holder
+    val aPosition = 0L
+    val msg0: Array[Byte] = Longs.toByteArray(aPosition) ++ Longs.toByteArray(100) ++ Base16.decode(noteTokenId).get
+    val sig0 = SigUtils.sign(msg0, reserveASecret)
+    val sig0Bytes = GroupElementSerializer.toBytes(sig0._1) ++ sig0._2.toByteArray
+
+    val bPosition = 1L
+    val bValue = 50L
+    val msg1: Array[Byte] = Longs.toByteArray(bPosition) ++ Longs.toByteArray(bValue) ++ Base16.decode(noteTokenId).get
+    val sig1 = SigUtils.sign(msg1, reserveBSecret)
+    val sig1Bytes = GroupElementSerializer.toBytes(sig1._1) ++ sig1._2.toByteArray
+
+    val finalNoteValue = 20
+    val cPosition = 2L
+    val msg2: Array[Byte] = Longs.toByteArray(cPosition) ++ Longs.toByteArray(finalNoteValue) ++ Base16.decode(noteTokenId).get
+    val sig2 = SigUtils.sign(msg2, reserveCSecret)
+    val sig2Bytes = GroupElementSerializer.toBytes(sig2._1) ++ sig2._2.toByteArray
+
+    val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+    val insertRes = plasmaMap.insert(Seq(reserveANFTBytes -> sig0Bytes, reserveBNFTBytes -> sig1Bytes, reserveCNFTBytes -> sig2Bytes):_*)
+    val _ = insertRes.proof
+    val historyTree = plasmaMap.ergoValue.getValue
+
+    createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
+      // we test chain of two redemptions here, first, holder of the note is redeeming against reserve B, and then
+      // owner of B is redeeming against reserve A
+
+      val oracleRate = 500000L // nanoErg per mg
+      val oracleDataInput =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue)
+          .tokens(new ErgoToken(oracleNFTBytes, 1))
+          .registers(ErgoValue.of(oracleRate * 1000000))
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), "{false}"))
+          .build()
+          .convertToInputWith(fakeTxId3, fakeIndex)
+
+
+      val noteInput =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue + feeValue)
+          .tokens(new ErgoToken(noteTokenId, finalNoteValue))
+          .registers(ErgoValue.of(historyTree), ErgoValue.of(holderPk))
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.noteContract))
+          .build()
+          .convertToInputWith(fakeTxId1, fakeIndex)
+          .withContextVars(
+            new ContextVar(0, ErgoValue.of(-1: Byte))
+          )
+
+      val lookupBRes = plasmaMap.lookUp(reserveBNFTBytes)
+      val lookupBProof = lookupBRes.proof
+
+      val reserveInput =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue)
+          .tokens(new ErgoToken(reserveBNFT, 1))
+          .registers(ErgoValue.of(reserveBPk))
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.reserveContract))
+          .build()
+          .convertToInputWith(fakeTxId2, fakeIndex)
+          .withContextVars(
+            new ContextVar(0, ErgoValue.of(0: Byte)),
+            new ContextVar(1, ErgoValue.of(lookupBProof.bytes)),
+            new ContextVar(2, ErgoValue.of(Longs.toByteArray(bValue))),
+            new ContextVar(3, ErgoValue.of(bPosition)),
+            new ContextVar(10, ErgoValue.of(false))
+          )
+
+      val reserveOutput = createOut(
+        Constants.reserveContract,
+        minValue - oracleRate * 98 / 100,
+        registers = Array(ErgoValue.of(reserveBPk)),
+        tokens = Array(new ErgoToken(reserveBNFT, 1))
+      )
+
+      val receiptOutput = createOut(
+        Constants.receiptContract,
+        minValue,
+        registers = Array(ErgoValue.of(historyTree), ErgoValue.of(bPosition), ErgoValue.of(ctx.getHeight - 5), ErgoValue.of(reserveBPk)),
+        tokens = Array(new ErgoToken(noteTokenId, finalNoteValue))
+      )
+
+      val inputs = Array[InputBox](noteInput, reserveInput)
+      val dataInputs = Array[InputBox](oracleDataInput)
+      val outputs = Array[OutBoxImpl](reserveOutput, receiptOutput)
+
+      createTx(
+        inputs,
+        dataInputs,
+        outputs,
+        fee = None ,
+        changeAddress,
+        Array[String](holderSecret.toString()),
+        false
+      )
+    }
+  }
+
 
   property("spending should work - multiple notes and change") {
     createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
@@ -429,10 +551,6 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         )
       }
     }
-  }
-
-  property("chain of redemptions") {
-    // todo: test receipt creation and redemption against earlier reserve
   }
 
   property("refund - init") {
