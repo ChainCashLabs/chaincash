@@ -81,10 +81,14 @@ and DeFi applications on top of public blockchains are experimenting with algori
  usually are dying without active core. Elasticity of supply is also limited simply due to entry barriers for external actors.
 
 
-In this paper, we propose \cc{}, a new global kind of money, with decentralized issuance, elastic supply, and also collective backing~(not necessarily though) by collateral.
+In this paper, we propose \cc{}, a new global kind of money, with decentralized issuance, elastic supply. \cc{} notes are collectively backed by collateral and trust. \cc{} acts on top of Ergo blockchain~(possibly, other public blockchains as well,
+however, for efficient implementation there is requirement for primitives which can be found in Ergo only at the moment, to the best of our knowledge). Thus collateral for a \cc{} comes from reserves network peers may have, and on spending a note, a peer is attaching its
+reserve to collective backing. At the same time, a newly issued note could be accepted by a peer without any backing provided, for example, if such a note is issued by a friend or a trusted charity. Every peer in the system is having own individual rules
+for accepting notes~(widely accepted standards may exist at the same time), which provides basis for elasticity of supply.
 
+\section{\cc{} Design}
 
-We consider money here via its medium-of-exchange property. For existing currencies, there are usually many options to represent value, such as coins, paper or plastic banknotes, digital records in different ledgers, etc. For \cc{}, we define money as a set of digital notes, each has some nominal~(not fixed but arbitrary on our case). Value of a note is nominated in some existing widely recognizeable unit-of-account, such as gold. 
+We consider money here via its medium-of-exchange property. For existing currencies, there are usually many options to represent value, such as coins, paper or plastic banknotes, digital records in different ledgers, etc. For \cc{}, we define money as a set of digital notes, each has some nominal~(not fixed but arbitrary in our case). Value of a note is nominated in some existing widely recognizeable unit-of-account, such as gold.
 
 We consider that an economy is consisting of known agents $a_1, ..., a_n$. Then we can define medium-of-exchange property of money via a set of agents accepting monetary objects~(i.e. notes). Usually, set of agents accepting money~(local or foreign currency) is fixed. That is, for every monetary object~(e.g. a note), an agent is accepting it as a mean of incoming payment, or reject. In opposite, for \cc{} money, similarly to~\cite{saito2003peer}, the set is individual for a note, so when agent $a_i$ sees a note $n$, it applies its personal predicate $P_i(n)$ to decide whether to accept the note or decline it. 
 
@@ -95,7 +99,7 @@ As an example, consider a small gold mining cooperative in Ghana issuing a note 
 Agent's note quality estimation predicate $P_i(n)$ is considering collaterals and trust of previous spenders. Different agents may have different 
 collateralization estimation algorithm~(by analyzing history of the single note $n$, or all the notes known), different whitelists, blacklists, or trust scores assigned to previous spenders of the note $n$ etc. So in general case payment sender first need to consult with the receiver on whether the payment~(consisting of one or multiple notes) can be accepted. However, in the real world likely there will be standard predicates, thus payment receiver~(e.g. an online shop) may publish its predicate (or just predicate id) online, and then the payment can be done without prior interaction.
 
-We propose to implement \cc{} monetary system on top of a blockchain as:
+We propose to implement \cc{} monetary system on top of a public blockchain as:
 
 \begin{itemize}
   \item{} Blockchain provides an instant solution for public-key infrastructure.
