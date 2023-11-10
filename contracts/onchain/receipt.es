@@ -23,7 +23,11 @@
     val reserveInputErgoTree = INPUTS(1).propositionBytes
     val treeHash = blake2b256(reserveInputErgoTree.slice(1, reserveInputErgoTree.size))
     val reserveSpent = treeHash == fromBase58("$reserveContractHash")
-    val reRedemption = proveDlog(SELF.R7[GroupElement].get) && sigmaProp(reserveSpent)
+
+    // we check receipt contract here, and other fields in reserve contract, see comments in reserve.es
+    val receiptOutputErgoTree = OUTPUTS(1).propositionBytes
+    val receiptCreated = receiptOutputErgoTree == SELF.propositionBytes
+    val reRedemption = proveDlog(SELF.R7[GroupElement].get) && sigmaProp(reserveSpent && receiptCreated)
 
     burnDone || reRedemption
 }

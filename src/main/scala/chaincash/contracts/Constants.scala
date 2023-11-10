@@ -47,15 +47,21 @@ object Constants {
   val reserveContract = readContract("onchain/reserve.es", Map.empty)
   val reserveErgoTree = compile(reserveContract)
   val reserveAddress = getAddressFromErgoTree(reserveErgoTree)
+  val reserveContractHash = Blake2b256(reserveErgoTree.bytes.tail)
+  val reserveContractHashString = Base58.encode(reserveContractHash)
 
-  val rcHash = Blake2b256(reserveErgoTree.bytes.tail)
-  val rcHashString = Base58.encode(rcHash)
+  val receiptContract = readContract("onchain/receipt.es", Map("reserveContractHash" -> reserveContractHashString))
+  val receiptErgoTree = compile(receiptContract)
+  val receiptAddress = getAddressFromErgoTree(receiptErgoTree)
+  val receiptContractHash = Blake2b256(receiptErgoTree.bytes.tail)
+  val receiptContractHashString = Base58.encode(receiptContractHash)
 
-  val noteContract = readContract("onchain/note.es", Map("reserveContractHash" -> rcHashString))
+  val noteContract = readContract("onchain/note.es",
+    Map("reserveContractHash" -> reserveContractHashString, "receiptContractHash" -> receiptContractHashString))
   val noteErgoTree = compile(noteContract)
   val noteAddress = getAddressFromErgoTree(noteErgoTree)
 
-  val receiptContract = readContract("onchain/receipt.es", Map("reserveContractHash" -> rcHashString))
+  // contracts below are experimental and not finished ChainCash-on-Layer2 contracts
 
   val redemptionContract = scala.io.Source.fromFile("contracts/layer2/redemption.es", "utf-8").getLines.mkString("\n")
   val redemptionErgoTree = compile(redemptionContract)

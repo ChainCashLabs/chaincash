@@ -66,7 +66,9 @@
       val properSignature = (g.exp(z) == a.multiply(ownerKey.exp(eInt))) &&
                              noteValue <= maxValue
 
-      // todo: check receipt output contract
+      // we check that receipt is properly formed, but we do not check receipt's contract here,
+      // to avoid circular dependency as receipt contract depends on (hash of) our contract,
+      // thus we are checking receipt contract in note and receipt contracts
       val receiptOut = OUTPUTS(1)
       val properReceipt =
         receiptOut.tokens(0) == noteInput.tokens(0) &&
