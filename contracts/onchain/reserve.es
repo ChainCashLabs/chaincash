@@ -93,16 +93,18 @@
       if (action == 2) {
         // init refund
         val correctHeight = selfOut.R5[Int].get >= HEIGHT - 5
-        sigmaProp(selfPreserved && correctHeight) && proveDlog(ownerKey)
+        val correctValue = selfOut.value >= SELF.value
+        sigmaProp(selfPreserved && correctHeight && correctValue) && proveDlog(ownerKey)
       } else if (action == 3) {
         // cancel refund
         val correctHeight = !(selfOut.R5[Int].isDefined)
-        sigmaProp(selfPreserved && correctHeight) && proveDlog(ownerKey)
+        val correctValue = selfOut.value >= SELF.value
+        sigmaProp(selfPreserved && correctHeight && correctValue) && proveDlog(ownerKey)
       } else if (action == 4) {
         // complete refund
         val refundNotificationPeriod = 7200 // 10 days
         val correctHeight = (SELF.R5[Int].get + refundNotificationPeriod) >= HEIGHT
-        sigmaProp(correctHeight) && proveDlog(ownerKey) // todo: check is it ok to check no conditions
+        sigmaProp(correctHeight) && proveDlog(ownerKey) // todo: check is it ok to check no other conditions
       } else {
         sigmaProp(false)
       }
