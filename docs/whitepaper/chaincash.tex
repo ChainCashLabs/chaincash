@@ -96,15 +96,15 @@ Then how notes are different in case of \cc{}? We consider that every note is co
 As an example, consider a small gold mining cooperative in Ghana issuing a note backed by (tokenized) gold. The note is then accepted by the national government as mean of tax payment. Then the government is using the note~(which is now backed by gold and also trust in Ghana government, so, e.g. convertible to Ghanaian Cedi as well) to buy oil from a Saudi oil company. Then the oil company, having its own oil reserve also, is using the note to buy equipment from China. Now a Chinese company has a note which is backed by gold, oil, and Cedis. It could be hard maybe for Chinese company to redeem from a small cooperative in Ghana, so it can redeem from Ghana government, and the government may redeem from the cooperative.
 
 Agent's note quality estimation predicate $P_i(n)$ is considering collaterals and trust of previous spenders. Different agents may have different 
-collateralization estimation algorithm~(by analyzing history of the single note $n$, or all the notes known), different whitelists, blacklists, or trust scores assigned to previous spenders of the note $n$ etc. So in general case payment sender first need to consult with the receiver on whether the payment~(consisting of one or multiple notes) can be accepted. However, in the real world likely there will be standard predicates, thus payment receiver~(e.g. an online shop) may publish its predicate (or just predicate id) online, and then the payment can be done without prior interaction.
+collateralization estimation algorithm~(by analyzing history of the single note $n$, or e.g. all the notes issued by previous signers of $n$, other options are also possible), different whitelists, blacklists, or trust scores assigned to previous spenders of the note $n$ etc. So in general case payment sender first need to consult with the receiver on whether the payment~(consisting of one or multiple notes) can be accepted. However, in the real world likely there will be standard predicates, thus payment receiver~(e.g. an online shop) may publish its predicate (or just predicate id) online, and then a payment can be done without prior interaction.
 
 We propose to implement \cc{} monetary system on top of a public blockchain as:
 
 \begin{itemize}
-  \item{} Blockchain provides an instant solution for public-key infrastructure.
-  \item{} Public blockchain allows for a global ledger solution with minimal trust assumptions~\cite{kya}.
-  \item{} As a consequence, global public ledger allows for simple analysis of the notes in existence.
-  \item{} Smart contracts minimize trust issues in payment execution and redemption. If native blockchain currency and assets on top of it~(such as algorithmic stablecoins) used in reserves, trust issues in redemption could be eliminated at all. If tokenized real-world commodities and fiat currencies~(e.g. USDT) are used in reserves, redemption could not be completely trustless~(as smart contracts do not have power off the chain), but at least there is transparent accounting in on-chain part of redemption. 
+  \item{} blockchain provides an instant solution for public-key infrastructure
+  \item{} public blockchain allows for a global ledger solution with minimal trust assumptions~\cite{kya}
+  \item{} as a consequence, global public ledger allows for simple analysis of notes in existence
+  \item{} smart contracts minimize trust issues in payment execution and redemption. If native blockchain currency and assets on top of it~(such as algorithmic stablecoins) used in reserves, trust issues in redemption could be eliminated at all. If tokenized real-world commodities and fiat currencies~(e.g. USDT) are used in reserves, redemption could not be completely trustless~(as smart contracts do not have power off the chain), but at least there is transparent accounting in on-chain part of redemption
 \end{itemize}
 
 We use Ergo as a Proof-of-Work blockchain to implement \cc{}, as it is built on minimal trust assumptions~\cite{kya}, and UTXO transactional model as well as AVL+ trees support are making notes implementation feasible.
