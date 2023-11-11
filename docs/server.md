@@ -16,7 +16,7 @@ ChainCash server with its individual settings. The client could be thought as a 
 [ChainCash whitepaper](https://github.com/kushti/chaincash/blob/master/paper/chaincash.pdf) defines client-side 
 acceptance predicate, and we are going to details here.
 
-Acceptance predicate should be defined via [HOCON](https://github.com/lightbend/config/blob/master/HOCON.md) based settings. 
+Acceptance predicate should be defined via [TOML](https://toml.io/en/) based settings. 
 It should be possible to define following data the predicate is built on:
 
 * whitelist (for current holder)

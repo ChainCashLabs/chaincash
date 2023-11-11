@@ -80,11 +80,10 @@ Currently, most of monetary value is created by private banks~(often, offshore b
 and DeFi applications on top of public blockchains are experimenting with algorithmic money issuance. As another option, we also have alternative, usually local, monetary systems, such as LETS~(local exchange trading systems~\cite{williams1996new}), timebanks, local government currencies~\cite{unterguggenbercer1934end}, and so on. Control in traditional fiat monetary systems is possessed by big players~(with rich getting richer effect) creating money in non-transparent ways~(especially in offshore circuits) without reasonable limits, on the other side, fiat monetary systems (in opposite to commodity money used before fiat, as well as alternative monetary systems) have best supply elasticity. Cryptocurrencies~(and, sometimes, other tokens on top of public blockchains) have strict algorithms emitting new money, thus they have publicly known emission schedule, which makes them perfect digital commodity assets, on the other hand, supply is disconnected from economic activity and not elastic. Local currencies usually considered more fair in segniorage distribution than fiat currencies, they are successfully boosting local economies often, but, in opposite to fiat and crypto-currencies, they are not global and
  usually are dying without active core. Elasticity of supply is also limited simply due to entry barriers for external actors.
 
-
 In this paper, we propose \cc{}, a new global kind of money, with decentralized issuance, elastic supply. \cc{} notes are collectively backed by collateral and trust. \cc{} acts on top of Ergo blockchain~(possibly, other public blockchains as well,
 however, for efficient implementation there is requirement for primitives which can be found in Ergo only at the moment, to the best of our knowledge). Thus collateral for a \cc{} comes from reserves network peers may have, and on spending a note, a peer is attaching its
 reserve to collective backing. At the same time, a newly issued note could be accepted by a peer without any backing provided, for example, if such a note is issued by a friend or a trusted charity. Every peer in the system is having own individual rules
-for accepting notes~(widely accepted standards may exist at the same time), which provides basis for elasticity of supply.
+for accepting notes~(widely accepted standards may exist at the same time), which provides basis for elasticity of supply. We are providing details in the next section.
 
 \section{\cc{} Design}
 

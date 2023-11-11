@@ -40,7 +40,7 @@ without prior interaction.
 High-level description of ChainCash protocol and its implementation can be found 
 in the [whitepaper](https://github.com/kushti/chaincash/blob/master/paper/chaincash.pdf). 
 
-More materials: 
+More introductory materials: 
 
 * [The World Needs For More Collateral](https://www.ergoforum.org/t/the-world-needs-for-more-collateral/4451) - forum thread
 * [Video presentation from Ergo Summit](https://www.youtube.com/watch?v=NxIlIpO6ZVI)
@@ -68,7 +68,6 @@ estimation options.
 
 ## TODO
 
-* refund with delay for reserves
 * update ReserveData.liabilities and reserveKeys in offchain code
 * offchain code for note redemption
 * support few spendings of a note in the same block (offchain tracking of it)
@@ -76,4 +75,4 @@ estimation options.
 * efficient persistence for own notes (currently, all the notes in the system are iterated over)
 * check ERG preservation in note contracts
 
-and then, API for clients and some front-end on top of it
+and then, server with API for clients and some front-end on top of it
