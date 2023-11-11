@@ -86,6 +86,7 @@ reserve to collective backing. At the same time, a newly issued note could be ac
 for accepting notes~(widely accepted standards may exist at the same time), which provides basis for elasticity of supply. We are providing details in the next section.
 
 \section{\cc{} Design}
+\label{sec-design}
 
 We consider money here via its medium-of-exchange property. For existing currencies, there are usually many options to represent value, such as coins, paper or plastic banknotes, digital records in different ledgers, etc. For \cc{}, we define money as a set of digital notes, each has some nominal~(not fixed but arbitrary in our case). Value of a note is nominated in some existing widely recognizeable unit-of-account, for example, in milligrams of gold.
 
@@ -112,32 +113,29 @@ We use Ergo as a Proof-of-Work blockchain to implement \cc{}, as it is built on 
 
 \section{\cc{} Implementation}
 
-To implement \cc{} on top of a UTXO cryptocurrency, such as Ergo, two contracts are needed, a note contract and a reserve contract. Reserve contract locks ERG native tokens on top of Ergo blockchain and allow to redeem native or custom tokens when a note is presented. Note contract ensures that the note has proper history, that is, on every spending a valid signature of corresponding reserve is added. It also and allows for a note to be split into two parts~(payment and change), and allows for note redemption.
+For blockchain-based \cc{} implementation, we consider how to implement two main parts:
 
-\subsection{Layer1 implementation}
-\label{sec:l1-impl}
+\begin{itemize}
+  \item{} contracts for notes, reserves, and redemption receipts. Here, we consider on-chain contracts as the most
+  straightforward option. Then we may consider more scalable option, such as having reserves (and maybe receipts) only
+  on chain, and have notes making progress on a side-chain or off-chain (on top of some Layer 2 solution)
+  \item{} client software~(which we refer to as \cc{} Server as well), which is interacting with the blockchain (possibly, also a sidechain, or p2p network
+  where notes are making progress off-chain). This software is implementing $a_i$ agent's functionality from the Section~\ref{sec-design},
+  including note quality estimation predicate $P_i(n)$. For that, the client may potentially track all the reserves and notes.
+  Client's $P_i(n)$ may be configured via whitelists, blacklists, collateralization requirements provided in config.
+  \cc{} Server can be seen as a bank as in \"be your own bank\" used in Bitcoin community, however, in Bitcoin a node
+  is a passive and indistinguishable from others bank just validating common history, while \cc{} Server has individual behavior defined by its config.
+\end{itemize}
 
-On-chain note and reserve contracts are available in~\cite{contracts}.
+On-chain contracts are available at~\cite{contracts}. Three contracts can be found there, namely, reserve, note and receipt contracts. Reserve contract locks ERG native tokens on top of Ergo blockchain and allow to redeem native or custom tokens when a note is presented. Note contract ensures that the note has proper history, that is, on every spending a valid signature of corresponding reserve is added. It also and allows for a note to be split into two parts~(payment and change), and allows for note redemption.
 
+Reference \cc{} Server implementation (in Rust programming language) can be found at~\cite{server}.
 
-\subsection{Layer2 implementation}
-
-\cc{} allows for efficient Layer-2 implementation \knote{finish}
-
-
-\subsection{Offchain and on-chain part}
-
-Off-chain part is the most important piece of \cc{} system, as it allows for recognizing possibly different forms of note and reserve contracts, and also do note value estimation.
-
-\subsection{Possible Extensions And Clients Flexibility}
-
-Basic Layer-1 implementation described in Section~\ref{sec:l1-impl} is good for starters, but can be extended in many ways,
-and we list some in this section.
-
-First of all, we note that it is possible to add new features without need for the whole network to update. New features,
-such as new reserve and note contracts, can be proposed in form of CCIPs~(ChainCash Improvement Proposals). Then ChainCash
-client may support new features, means new forms of money defined by them. If client is asked to accept a note with unknown
-contract, or a note backed by unknown contract, it will refuse to accept the note just.
+Basic contracts implementation described is good for starters, but can be extended in many ways.  We note that it is possible
+to add new features without need for the whole network to update. New features, such as new reserve and note contracts,
+can be proposed in form of CCIPs~(ChainCash Improvement Proposals). ChainCash
+Server may support new features, in particular, new forms of notes. If client is asked to accept a note with unknown
+contract, or a note backed by unknown contract, it is just refusing to accept the note.
 
 \section{Applications}
 
@@ -158,13 +156,28 @@ Often local currencies are introducing redemption fee, to promote local usage. I
 
 Multilateral Trade-Credit Set-off~\ref{mtcs} is a technique which allows invoices in closed loops to be cleared against one another.
 In \cc{}, it is possible to clear mutual debts by just burning atomically tokens backed by counter-partis in a single
-transaction. This will allow them to issue more credit.
+transaction. This will allow them to issue more notes after.
 
 \section{\cc{} Advantages and Drawbacks}
 
-ChainCash notes are non-fungible, they share the same unit-of-account, each note has unique backing. This prevents ChainCash usage
-in many DeFi applications, such as liquidity pools, lending pools etc.
+In this section, we are providing some thoughts on possible advantages and drawbacks of \cc{}. Note that practice can show
+completely different picture from what we are providing here~(as often happens).
 
+Advantages:
+\begin{itemize}
+  \item
+  \item
+\end{itemize}
+
+Drawbacks:
+\begin{itemize}
+  \item ChainCash notes are non-fungible, while they share the same unit-of-account, each note has unique backing. This prevents ChainCash usage
+  in many DeFi applications, such as liquidity pools, lending pools etc. We note that, similarly, DAI stablecoins issued against CDPs
+  (collateralized debt posistions) with different collateralization also should be priced differently. And like DAI is assigning the same price to
+  DAIs of different quality, there could be services on top of \cc{} combining notes of certain quality, buy e.g. exchanging them with service tokens
+  which then can be used in DeFi services.
+  \item There is no privacy in \cc{} payments now. This topic is fully left for further research.
+\end{itemize}
 
 
 \newpage
