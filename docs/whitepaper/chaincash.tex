@@ -113,11 +113,11 @@ We use Ergo as a Proof-of-Work blockchain to implement \cc{}, as it is built on 
 
 \section{\cc{} Implementation}
 
-For blockchain-based \cc{} implementation, we consider how to implement two main parts:
+For blockchain-based \cc{} implementation, we consider implementation of the following two main parts:
 
 \begin{itemize}
   \item{} contracts for notes, reserves, and redemption receipts. Here, we consider on-chain contracts as the most
-  straightforward option. Then we may consider more scalable option, such as having reserves (and maybe receipts) only
+  straightforward option. Then we may consider more scalable options, such as having reserves (and maybe receipts) only
   on chain, and have notes making progress on a side-chain or off-chain (on top of some Layer 2 solution)
   \item{} client software~(which we refer to as \cc{} Server as well), which is interacting with the blockchain (possibly, also a sidechain, or p2p network
   where notes are making progress off-chain). This software is implementing $a_i$ agent's functionality from the Section~\ref{sec-design},
@@ -127,7 +127,8 @@ For blockchain-based \cc{} implementation, we consider how to implement two main
   is a passive and indistinguishable from others bank just validating common history, while \cc{} Server has individual behavior defined by its config.
 \end{itemize}
 
-On-chain contracts are available at~\cite{contracts}. Three contracts can be found there, namely, reserve, note and receipt contracts. Reserve contract locks ERG native tokens on top of Ergo blockchain and allow to redeem native or custom tokens when a note is presented. Note contract ensures that the note has proper history, that is, on every spending a valid signature of corresponding reserve is added. It also and allows for a note to be split into two parts~(payment and change), and allows for note redemption.
+On-chain contracts are available at~\cite{contracts}. Three contracts can be found there, namely, reserve, note and receipt contracts. Reserve contract locks ERG native tokens on top of Ergo blockchain and allow to redeem native or custom tokens when a note is presented. Note contract ensures that the note has proper history, that is, on every spending a valid signature of corresponding reserve owner is added. It also and allows for a note to be split into two parts~(payment and change), and allows for note redemption.
+On redemption, where both reserve and note contracts are involved, an output with receipt contract is created, which contains history of ownership copied from the note input, as well as position of reserve redeemed in ownership chain and note's value. With receipt it is possible then to redeem againt a re~(reserve contract allows for that).
 
 Reference \cc{} Server implementation (in Rust programming language) can be found at~\cite{server}.
 
@@ -138,6 +139,7 @@ Server may support new features, in particular, new forms of notes. If client is
 contract, or a note backed by unknown contract, it is just refusing to accept the note.
 
 \section{Applications}
+\label{sec-apps}
 
 \cc{} could be seen as a powerful foundation for other monetary systems, and we are going to show it in this section. 
 
@@ -154,7 +156,7 @@ Often local currencies are introducing redemption fee, to promote local usage. I
 
 \subsection{Multilateral Trade-Credit Set-off}
 
-Multilateral Trade-Credit Set-off~\ref{mtcs} is a technique which allows invoices in closed loops to be cleared against one another.
+Multilateral Trade-Credit Set-off~\cite{mtcs} is a technique which allows invoices in closed loops to be cleared against one another.
 In \cc{}, it is possible to clear mutual debts by just burning atomically tokens backed by counter-partis in a single
 transaction. This will allow them to issue more notes after.
 
@@ -165,8 +167,11 @@ completely different picture from what we are providing here~(as often happens).
 
 Advantages:
 \begin{itemize}
-  \item
-  \item
+  \item ChainCash is quite unique, to the best of our knowledge, framework, where trust and backing with collateral are
+   seamlessly combined in money issuance.
+  \item unlike native cryptocurrrencies and algorithmic stablecoin, \cc{} provides elasticity of supply without enforcing
+  individual users to accept notes of lower quality - it is always up to users what to accept.
+  \item as Section~\ref{sec-apps} shows, a variety of known monetary systems can be built on top of \cc{}.
 \end{itemize}
 
 Drawbacks:
