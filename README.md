@@ -38,7 +38,7 @@ without prior interaction.
 ## Whitepaper And Other Materials
 
 High-level description of ChainCash protocol and its implementation can be found 
-in the [whitepaper](https://github.com/kushti/chaincash/blob/master/paper/chaincash.pdf). 
+in the [whitepaper](https://github.com/ChainCashLabs/chaincash/blob/master/docs/whitepaper/chaincash.pdf). 
 
 More introductory materials: 
 
