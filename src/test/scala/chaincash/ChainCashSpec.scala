@@ -3,8 +3,6 @@ package chaincash
 import chaincash.contracts.Constants
 import chaincash.offchain.SigUtils
 import com.google.common.primitives.Longs
-import io.getblok.getblok_plasma.PlasmaParameters
-import io.getblok.getblok_plasma.collections.{PlasmaMap, Proof}
 import org.ergoplatform.P2PKAddress
 import org.ergoplatform.appkit.impl.{ErgoScriptContract, ErgoTreeContract, OutBoxImpl}
 import org.ergoplatform.appkit.{AppkitHelpers, BlockchainContext, ConstantsBuilder, ContextVar, ErgoValue, InputBox, NetworkType, OutBox, OutBoxBuilder, SignedTransaction}
@@ -18,6 +16,8 @@ import sigmastate.basics.DLogProtocol.ProveDlog
 import sigmastate.eval._
 import sigmastate.serialization.GroupElementSerializer
 import special.sigma.{AvlTree, GroupElement}
+import work.lithos.plasma.PlasmaParameters
+import work.lithos.plasma.collections.PlasmaMap
 
 import collection.JavaConverters._
 import java.util
