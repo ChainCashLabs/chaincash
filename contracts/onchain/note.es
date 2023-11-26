@@ -90,7 +90,7 @@
         selfOutput.tokens(0) == SELF.tokens(0) && nextNoteCorrect(selfOutput)
       }
 
-      sigmaProp(properSignature && outputsValid)
+      sigmaProp(properSignature && properReserve && outputsValid)
     } else {
       // redemption path
       // called by setting action variable to any negative value, -1 considered as standard by offchain apps

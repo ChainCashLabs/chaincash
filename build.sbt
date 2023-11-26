@@ -17,7 +17,7 @@ resolvers ++= Seq(
 )
 
 libraryDependencies ++= Seq(
-  "io.github.getblok-io" %% "getblok_plasma" % "1.0.2",
+  "io.github.k-singh" %% "plasma-toolkit" % "1.0.2",
   "com.squareup.okhttp3" % "mockwebserver" % "3.14.9",
   "org.scalatest" %% "scalatest" % "3.0.8" ,
   "org.scalacheck" %% "scalacheck" % "1.14.+"
