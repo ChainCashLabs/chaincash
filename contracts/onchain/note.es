@@ -9,14 +9,23 @@
 
     // when redemption, receipt is created which is allowing to do another redemption against earlier reserve
 
-    // to create a note, ...
-
     // box data:
+    //
+    // registers:
     // R4 - history of ownership (under AVL+ tree),
     //      tree contains reserveId as a key, signature as value,
     //      and message is note value and token id
     // R5 - current holder of the note (public key given as a group element)
     // R6 - current length of the chain (as long int)
+    //
+    // tokens:
+    // #0 - token which is denoting notes started from an initial one which has all the tokens of this ID
+    //
+    //  to create a note (issue new money accounted in milligrams of gols), one needs to create a box locked with this
+    //  contract, R4 containing empty AVL+ tree digest, R5 containing public key (encoded elliptic curve point) of the
+    //  issuer, R6 equals to 0, and tokens slot #0 contains all the tokens issued (maybe in the same transaction). If
+    //  any of the conditions not met (any register has another value, some tokens sent to other address or contract),
+    //  the note should be ignored by ChainCash software
 
     val g: GroupElement = groupGenerator
 
