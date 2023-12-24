@@ -1,7 +1,5 @@
 package chaincash.contracts
 
-import io.getblok.getblok_plasma.PlasmaParameters
-import io.getblok.getblok_plasma.collections.PlasmaMap
 import org.ergoplatform.ErgoAddressEncoder
 import org.ergoplatform.appkit.{AppkitHelpers, ErgoValue, NetworkType}
 import scorex.crypto.hash.Blake2b256
@@ -12,6 +10,8 @@ import sigmastate.AvlTreeFlags
 import sigmastate.Values.ErgoTree
 import sigmastate.lang.{CompilerSettings, SigmaCompiler, TransformingSigmaBuilder}
 import special.sigma.{AvlTree, GroupElement}
+import work.lithos.plasma.PlasmaParameters
+import work.lithos.plasma.collections.PlasmaMap
 
 import java.util
 

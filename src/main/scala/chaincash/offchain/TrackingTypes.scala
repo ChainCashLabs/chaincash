@@ -1,7 +1,6 @@
 package chaincash.offchain
 
 import chaincash.contracts.Constants
-import io.getblok.getblok_plasma.collections.PlasmaMap
 import org.ergoplatform.ErgoBox
 import org.ergoplatform.ErgoBox.R5
 import scorex.util.ModifierId
@@ -10,6 +9,7 @@ import sigmastate.Values.GroupElementConstant
 import sigmastate.eval.CGroupElement
 import sigmastate.basics.CryptoConstants.EcPointType
 import sigmastate.serialization.GroupElementSerializer
+import work.lithos.plasma.collections.PlasmaMap
 
 object TrackingTypes {
 

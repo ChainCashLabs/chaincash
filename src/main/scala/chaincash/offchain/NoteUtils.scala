@@ -5,7 +5,7 @@ import chaincash.contracts.Constants.{noteErgoTree, reserveErgoTree}
 import chaincash.offchain.TrackingTypes.NoteData
 import com.google.common.primitives.Longs
 import io.circe.syntax.EncoderOps
-import org.ergoplatform.ErgoBox.{R4, R5}
+import org.ergoplatform.ErgoBox.{R4, R5, R6}
 import org.ergoplatform.sdk.wallet.Constants.eip3DerivationPath
 import org.ergoplatform.sdk.wallet.secrets.ExtendedSecretKey
 import org.ergoplatform.sdk.wallet.settings.EncryptionSettings
@@ -15,7 +15,7 @@ import org.ergoplatform.wallet.settings.SecretStorageSettings
 import org.ergoplatform.{DataInput, ErgoBoxCandidate, P2PKAddress, UnsignedErgoLikeTransaction, UnsignedInput}
 import scorex.crypto.hash.Digest32
 import scorex.util.encode.Base16
-import sigmastate.Values.{AvlTreeConstant, ByteArrayConstant, ByteConstant, GroupElementConstant}
+import sigmastate.Values.{AvlTreeConstant, ByteArrayConstant, ByteConstant, GroupElementConstant, LongConstant}
 import sigmastate.eval.Colls
 import sigmastate.interpreter.ContextExtension
 import sigmastate.eval._
@@ -39,7 +39,11 @@ trait NoteUtils extends WalletUtils {
       noteErgoTree,
       creationHeight,
       Colls.fromItems((Digest32Coll @@ Colls.fromArray(noteTokenId)) -> amountMg),
-      Map(R4 -> AvlTreeConstant(Constants.emptyTree), R5 -> GroupElementConstant(ownerPubkey))
+      Map(
+        R4 -> AvlTreeConstant(Constants.emptyTree),
+        R5 -> GroupElementConstant(ownerPubkey),
+        R6 -> LongConstant(0)
+      )
     )
     val feeOut = createFeeOut(creationHeight)
     val changeOutOpt = if(inputValue > 21 * feeValue) {
