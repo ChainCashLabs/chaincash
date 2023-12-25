@@ -14,7 +14,7 @@
     // registers:
     // R4 - history of ownership (under AVL+ tree),
     //      tree contains reserveId as a key, signature as value,
-    //      and message is note value and token id
+    //      and message is position in the tree, note value and token id
     // R5 - current holder of the note (public key given as a group element)
     // R6 - current length of the chain (as long int)
     //
