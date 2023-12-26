@@ -4,7 +4,8 @@
     // Data:
     //  - token #0 - identifying singleton token
     //  - R4 - signing key (as a group element)
-    //  - R5 - refund init height (Int.MaxValue if not set)
+    //  - R5 - refund init height (None if not set)
+    //  - R6 - amount to refund (None if not set)
     //
     // Actions:
     //  - redeem note (#0)
@@ -103,8 +104,10 @@
       } else if (action == 4) {
         // complete refund
         val refundNotificationPeriod = 14400 // 20 days
-        val correctHeight = (SELF.R5[Int].get + refundNotificationPeriod) >= HEIGHT
-        sigmaProp(correctHeight) && proveDlog(ownerKey) // todo: check is it ok to check no other conditions
+        val correctHeight = (SELF.R5[Int].get + refundNotificationPeriod) <= HEIGHT
+        val refundLimit = SELF.R6[Long].get
+        val correctValue = SELF.value - selfOut.value <= refundLimit
+        sigmaProp(selfPreserved && correctHeight && correctValue) && proveDlog(ownerKey) // todo: check is it ok to check no other conditions
       } else {
         sigmaProp(false)
       }

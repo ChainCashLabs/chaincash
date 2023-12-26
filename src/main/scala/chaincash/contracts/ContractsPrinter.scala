@@ -9,6 +9,7 @@ object ContractsPrinter extends App {
 
   println(s"Note contract address: $noteAddress")
 
+  println(s"Receipt contract address: $receiptAddress")
 
   println(s"Reserve contract address: $reserveAddress")
 

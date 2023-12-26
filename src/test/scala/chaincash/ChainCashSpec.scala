@@ -17,7 +17,7 @@ import sigmastate.eval._
 import sigmastate.serialization.GroupElementSerializer
 import special.sigma.{AvlTree, GroupElement}
 import work.lithos.plasma.PlasmaParameters
-import work.lithos.plasma.collections.PlasmaMap
+import work.lithos.plasma.collections.{PlasmaMap, Proof}
 
 import collection.JavaConverters._
 import java.util
