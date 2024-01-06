@@ -24,8 +24,11 @@
     val action = getVar[Byte](0).get
 
     if (action == 0) {
-      // redeem path
-      // oracle provides gold price in nanoErg per kg in its R4 register
+      // redemption path
+
+      // OUTPUTS:
+      // #1 - receipt
+      // #2 - buyback
 
       val g: GroupElement = groupGenerator
 
@@ -38,7 +41,9 @@
       val history = noteInput.R4[AvlTree].get
       val reserveId = SELF.tokens(0)._1
 
+      // oracle provides gold price in nanoErg per kg in its R4 register
       val goldOracle = CONTEXT.dataInputs(0)
+      // todo: externalize oracle NFT id
       val properOracle = goldOracle.tokens(0)._1 == fromBase58("2DfY1K4rW9zPVaQgaDp2KXgnErjxKPbbKF5mq1851MJE")
       val oracleRate = goldOracle.R4[Long].get / 1000000 // normalize to nanoerg per mg of gold
 
