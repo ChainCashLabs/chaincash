@@ -27,22 +27,22 @@
     //  any of the conditions not met (any register has another value, some tokens sent to other address or contract),
     //  the note should be ignored by ChainCash software
 
-    val g: GroupElement = groupGenerator
-
-    val history = SELF.R4[AvlTree].get
-
     val action = getVar[Byte](0).get // also encodes note output # in tx outputs
 
-    val noteTokenId = SELF.tokens(0)._1
-    val noteValue = SELF.tokens(0)._2
-
-    val reserve = CONTEXT.dataInputs(0)
-    val reserveId = reserve.tokens(0)._1
-
-    val holder = SELF.R5[GroupElement].get
+    val holder = SELF.R5[GroupElement].get // used in both paths
 
     if (action >= 0) {
       // spending path
+
+      val g: GroupElement = groupGenerator
+
+      val history = SELF.R4[AvlTree].get
+
+      val reserve = CONTEXT.dataInputs(0)
+      val reserveId = reserve.tokens(0)._1
+
+      val noteTokenId = SELF.tokens(0)._1
+      val noteValue = SELF.tokens(0)._2
 
       val selfOutput = OUTPUTS(action)
 
