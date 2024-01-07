@@ -25,4 +25,19 @@ LETS on ChainCash
 * there is no requirement for min reserve value, so it can be close to zero ERG (slightly above to cover 
   storage rent requirements, eg 0.001 ERG)
 * then for Alice to pay to Bob in our example, she is issuing a note with needed amount and pays Bob with it. Then 
-  Bob may use it to pay Charlie. Bob may use multiple notes in one transaction. 
+  Bob may use it to pay Charlie. Bob may use multiple notes in one transaction
+* Alice's balance at any time can be calculated as total value of notes she holds at the moment minus total value of 
+  all the note she ever issued. It may be negative.
+
+Mutual Credit Settlement 
+------------------------
+
+If Alice holds a note issued by Charlie, and Charlie holds a note issued by Alice, and both notes are of the same value, 
+they can do clearing. For that, they create a single 
+
+If notes are of different values, bigger one's can spend it to self to get two notes (payment and change), with one of 
+them being equal to counteparty's note, and then clearing is possible. 
+
+
+Extensions
+----------

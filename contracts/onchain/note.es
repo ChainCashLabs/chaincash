@@ -113,7 +113,8 @@
       // we drop version byte during ergotrees comparison
       // signature of note holder is also required
 
-      val reserveInputErgoTree = INPUTS(1).propositionBytes
+      val reserveInput = INPUTS(1)
+      val reserveInputErgoTree = reserveInput.propositionBytes
       val treeHash = blake2b256(reserveInputErgoTree.slice(1, reserveInputErgoTree.size))
       val reserveSpent = treeHash == fromBase58("$reserveContractHash")
 
