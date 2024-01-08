@@ -29,11 +29,11 @@ LETS on ChainCash
 * Alice's balance at any time can be calculated as total value of notes she holds at the moment minus total value of 
   all the note she ever issued. It may be negative.
 
-Mutual Credit Settlement 
+Mutual Credit Clearing 
 ------------------------
 
 If Alice holds a note issued by Charlie, and Charlie holds a note issued by Alice, and both notes are of the same value, 
-they can do clearing. For that, they create a single 
+they can do clearing. For that, they create a reserve redemption transactions, one 
 
 If notes are of different values, bigger one's can spend it to self to get two notes (payment and change), with one of 
 them being equal to counteparty's note, and then clearing is possible. 
@@ -41,3 +41,7 @@ them being equal to counteparty's note, and then clearing is possible.
 
 Extensions
 ----------
+
+
+Network Fees
+------------

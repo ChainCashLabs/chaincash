@@ -14,14 +14,17 @@
     //  - cancel refund (#3)
     //  - complete refund (#4)
 
-    val ownerKey = SELF.R4[GroupElement].get // used in notes and unlock/lock/refund actions
-    val selfOut = OUTPUTS(0)
+    val v = getVar[Byte](0).get
+    val action = v / 10
+    val index = v % 10
+
+    val ownerKey = SELF.R4[GroupElement].get // reserve owner's key, used in notes and unlock/lock/refund actions
+    val selfOut = OUTPUTS(index)
     val selfPreserved =
             selfOut.propositionBytes == SELF.propositionBytes &&
             selfOut.tokens == SELF.tokens &&
             selfOut.R4[GroupElement].get == SELF.R4[GroupElement].get
 
-    val action = getVar[Byte](0).get
 
     if (action == 0) {
       // redemption path
@@ -32,10 +35,10 @@
 
       val g: GroupElement = groupGenerator
 
-      val receiptMode = getVar[Boolean](10).get
+      val receiptMode = getVar[Boolean](4).get
 
-      // read note data, id receiptMode == false, receipt data otherwise
-      val noteInput = INPUTS(0)
+      // read note data if receiptMode == false, receipt data otherwise
+      val noteInput = INPUTS(index)
       val noteTokenId = noteInput.tokens(0)._1
       val noteValue = noteInput.tokens(0)._2 // 1 token == 1 mg of gold
       val history = noteInput.R4[AvlTree].get
@@ -75,7 +78,8 @@
       // we check that receipt is properly formed, but we do not check receipt's contract here,
       // to avoid circular dependency as receipt contract depends on (hash of) our contract,
       // thus we are checking receipt contract in note and receipt contracts
-      val receiptOut = OUTPUTS(1)
+      val receiptOutIndex = getVar[Int](5).get
+      val receiptOut = OUTPUTS(receiptOutIndex)
       val properReceipt =
         receiptOut.tokens(0) == noteInput.tokens(0) &&
         receiptOut.R4[AvlTree].get == history  &&

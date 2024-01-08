@@ -101,6 +101,8 @@
 
       sigmaProp(properSignature && properReserve && outputsValid)
     } else {
+      // action < 0
+
       // redemption path
       // called by setting action variable to any negative value, -1 considered as standard by offchain apps
 
@@ -113,13 +115,15 @@
       // we drop version byte during ergotrees comparison
       // signature of note holder is also required
 
-      val reserveInput = INPUTS(1)
+      val index = -action
+
+      val reserveInput = INPUTS(index)
       val reserveInputErgoTree = reserveInput.propositionBytes
       val treeHash = blake2b256(reserveInputErgoTree.slice(1, reserveInputErgoTree.size))
       val reserveSpent = treeHash == fromBase58("$reserveContractHash")
 
       // we check receipt contract here, and other fields in reserve contract, see comments in reserve.es
-      val receiptOutputErgoTree = OUTPUTS(1).propositionBytes
+      val receiptOutputErgoTree = OUTPUTS(index).propositionBytes
       val receiptTreeHash = blake2b256(receiptOutputErgoTree.slice(1, receiptOutputErgoTree.size))
       val receiptCreated = receiptTreeHash == fromBase58("$receiptContractHash")
 

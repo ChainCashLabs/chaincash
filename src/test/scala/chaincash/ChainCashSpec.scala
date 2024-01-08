@@ -253,7 +253,8 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
             new ContextVar(1, ErgoValue.of(lookupProof.bytes)),
             new ContextVar(2, ErgoValue.of(Longs.toByteArray(noteValue))),
             new ContextVar(3, ErgoValue.of(position)),
-            new ContextVar(10, ErgoValue.of(false))
+            new ContextVar(4, ErgoValue.of(false)),
+            new ContextVar(5, ErgoValue.of(1))
           )
 
       val oracleRate = 500000L // nanoErg per mg
@@ -398,7 +399,8 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
             new ContextVar(1, ErgoValue.of(lookupBProof.bytes)),
             new ContextVar(2, ErgoValue.of(Longs.toByteArray(bValue))),
             new ContextVar(3, ErgoValue.of(bPosition)),
-            new ContextVar(10, ErgoValue.of(false))
+            new ContextVar(4, ErgoValue.of(false)),
+            new ContextVar(5, ErgoValue.of(1))
           )
 
       val reserveOutput = createOut(
@@ -449,7 +451,8 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
             new ContextVar(1, ErgoValue.of(lookupAProof.bytes)),
             new ContextVar(2, ErgoValue.of(Longs.toByteArray(aValue))),
             new ContextVar(3, ErgoValue.of(aPosition)),
-            new ContextVar(10, ErgoValue.of(true))
+            new ContextVar(4, ErgoValue.of(true)),
+            new ContextVar(5, ErgoValue.of(1))
           )
 
       val reserveAOutput = createOut(
@@ -482,6 +485,176 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
     }
   }
 
+  property("mutual credit clearing") {
+    createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
+      val fundingBox =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(200 * minValue + feeValue)
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), fakeScript))
+          .build()
+          .convertToInputWith(fakeTxId5, fakeIndex)
+
+      val position = 0L
+
+      val reserve1NFT = "261A3A5250655368566D597133743677397A24432646294A404D635166546A57"
+      val reserve1NFTBytes = Base16.decode(reserve1NFT).get
+
+      val reserve2NFT = "361A3A5250655368566D597133743677397A24432646294A404D635166546A57"
+      val reserve2NFTBytes = Base16.decode(reserve2NFT).get
+
+      val note1TokenId = "6b2d8b7beb3eaac8234d9e61792d270898a43934d6a27275e4f3a044609c9f2a"
+      val note2TokenId = "8b2d8b7beb3eaac8234d9e61792d270898a43934d6a27275e4f3a044609c9f2a"
+
+      val holder1Secret = SigUtils.randBigInt
+      val holder1Pk = Constants.g.exp(holder1Secret.bigInteger)
+      val holder2Secret = SigUtils.randBigInt
+      val holder2Pk = Constants.g.exp(holder2Secret.bigInteger)
+
+      val msg1: Array[Byte] = Longs.toByteArray(position) ++ Longs.toByteArray(noteValue) ++ Base16.decode(note1TokenId).get
+      val sig1 = SigUtils.sign(msg1, holder1Secret)
+
+      val msg2: Array[Byte] = Longs.toByteArray(position) ++ Longs.toByteArray(noteValue) ++ Base16.decode(note2TokenId).get
+      val sig2 = SigUtils.sign(msg2, holder2Secret)
+
+      val plasmaMap1 = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+      val sig1Bytes = GroupElementSerializer.toBytes(sig1._1) ++ sig1._2.toByteArray
+      val insertRes1 = plasmaMap1.insert(reserve1NFTBytes -> sig1Bytes)
+      val i1 = insertRes1.proof
+      val historyTree1 = plasmaMap1.ergoValue.getValue
+      val lookupRes1 = plasmaMap1.lookUp(reserve1NFTBytes)
+      val lookupProof1 = lookupRes1.proof
+
+      val plasmaMap2 = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+      val sig2Bytes = GroupElementSerializer.toBytes(sig2._1) ++ sig2._2.toByteArray
+      val insertRes2 = plasmaMap2.insert(reserve2NFTBytes -> sig2Bytes)
+      val i2 = insertRes2.proof
+      val historyTree2 = plasmaMap2.ergoValue.getValue
+      val lookupRes2 = plasmaMap2.lookUp(reserve2NFTBytes)
+      val lookupProof2 = lookupRes2.proof
+
+      val note1Input =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue + feeValue)
+          .tokens(new ErgoToken(note1TokenId, noteValue))
+          .registers(ErgoValue.of(historyTree1), ErgoValue.of(holder1Pk))
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.noteContract))
+          .build()
+          .convertToInputWith(fakeTxId1, fakeIndex)
+          .withContextVars(
+            new ContextVar(0, ErgoValue.of(-2: Byte))
+          )
+
+      val note2Input =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue + feeValue)
+          .tokens(new ErgoToken(note2TokenId, noteValue))
+          .registers(ErgoValue.of(historyTree2), ErgoValue.of(holder2Pk))
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.noteContract))
+          .build()
+          .convertToInputWith(fakeTxId2, fakeIndex)
+          .withContextVars(
+            new ContextVar(0, ErgoValue.of(-3: Byte))
+          )
+
+      val reserve1Input =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue)
+          .tokens(new ErgoToken(reserve1NFTBytes, 1))
+          .registers(ErgoValue.of(holder1Pk))
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.reserveContract))
+          .build()
+          .convertToInputWith(fakeTxId3, fakeIndex)
+          .withContextVars(
+            new ContextVar(0, ErgoValue.of(0: Byte)),
+            new ContextVar(1, ErgoValue.of(lookupProof1.bytes)),
+            new ContextVar(2, ErgoValue.of(Longs.toByteArray(noteValue))),
+            new ContextVar(3, ErgoValue.of(position)),
+            new ContextVar(4, ErgoValue.of(false)),
+            new ContextVar(5, ErgoValue.of(2))
+          )
+
+      val reserve2Input =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue)
+          .tokens(new ErgoToken(reserve2NFTBytes, 1))
+          .registers(ErgoValue.of(holder2Pk))
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.reserveContract))
+          .build()
+          .convertToInputWith(fakeTxId4, fakeIndex)
+          .withContextVars(
+            new ContextVar(0, ErgoValue.of(1: Byte)),
+            new ContextVar(1, ErgoValue.of(lookupProof2.bytes)),
+            new ContextVar(2, ErgoValue.of(Longs.toByteArray(noteValue))),
+            new ContextVar(3, ErgoValue.of(position)),
+            new ContextVar(4, ErgoValue.of(false)),
+            new ContextVar(5, ErgoValue.of(3))
+          )
+
+      val oracleRate = 500000L // nanoErg per mg
+      val oracleDataInput =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue)
+          .tokens(new ErgoToken(oracleNFTBytes, 1))
+          .registers(ErgoValue.of(oracleRate * 1000000))
+          .contract(ctx.compileContract(ConstantsBuilder.empty(), "{false}"))
+          .build()
+          .convertToInputWith(fakeTxId3, fakeIndex)
+
+      val reserve1Output = createOut(
+        Constants.reserveContract,
+        minValue,
+        registers = Array(ErgoValue.of(holder1Pk)),
+        tokens = Array(new ErgoToken(reserve1NFT, 1))
+      )
+
+      val reserve2Output = createOut(
+        Constants.reserveContract,
+        minValue,
+        registers = Array(ErgoValue.of(holder2Pk)),
+        tokens = Array(new ErgoToken(reserve2NFT, 1))
+      )
+
+      val receipt1Output = createOut(
+        Constants.receiptContract,
+        minValue,
+        registers = Array(ErgoValue.of(historyTree1), ErgoValue.of(0L), ErgoValue.of(ctx.getHeight - 5), ErgoValue.of(holder1Pk)),
+        tokens = Array(new ErgoToken(note1TokenId, noteValue))
+      )
+
+      val receipt2Output = createOut(
+        Constants.receiptContract,
+        minValue,
+        registers = Array(ErgoValue.of(historyTree2), ErgoValue.of(0L), ErgoValue.of(ctx.getHeight - 5), ErgoValue.of(holder2Pk)),
+        tokens = Array(new ErgoToken(note2TokenId, noteValue))
+      )
+
+      val inputs = Array[InputBox](note1Input, note2Input, reserve1Input, reserve2Input, fundingBox)
+      val dataInputs = Array[InputBox](oracleDataInput)
+      val outputs = Array[OutBoxImpl](reserve1Output, reserve2Output, receipt1Output, receipt2Output)
+
+      createTx(
+        inputs,
+        dataInputs,
+        outputs,
+        fee = None ,
+        changeAddress,
+        Array[String](holder1Secret.toString(), holder2Secret.toString()),
+        false
+      )
+    }
+  }
 
   property("spending should work - multiple notes and change") {
     createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
@@ -627,7 +800,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .build()
           .convertToInputWith(fakeTxId2, fakeIndex)
           .withContextVars(
-            new ContextVar(0, ErgoValue.of(2: Byte))
+            new ContextVar(0, ErgoValue.of(20: Byte))
           )
 
       val fundingBox =
@@ -668,6 +841,10 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
 
 
   property("refund - done") {
+    // todo:
+  }
+
+  property("top-up") {
     // todo:
   }
 
