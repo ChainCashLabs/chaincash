@@ -20,7 +20,7 @@ LETS on ChainCash
 -----------------
 
 * LETS members are decided off-chain
-* LETS members white-list each other in ChainCash Server (todo: what kind of whitelist?)
+* LETS members white-list each other in ChainCash Server
 * standard CCIP-1 contracts are used
 * there is no requirement for min reserve value, so it can be close to zero ERG (slightly above to cover 
   storage rent requirements, eg 0.001 ERG)
@@ -33,15 +33,21 @@ Mutual Credit Clearing
 ------------------------
 
 If Alice holds a note issued by Charlie, and Charlie holds a note issued by Alice, and both notes are of the same value, 
-they can do clearing. For that, they create a reserve redemption transactions, one 
+they can do clearing. For that, they create a single transaction which is redeeming both notes but without decreasing 
+reserves, and sign it (signatures from both are needed, but for different inputs). There's "mutual credit clearing" 
+test in `ChainCashSpec.scala` which can be used as an example of how to construct mutual credit clearing transaction.
 
 If notes are of different values, bigger one's can spend it to self to get two notes (payment and change), with one of 
-them being equal to counteparty's note, and then clearing is possible. 
+them being equal to counteparty's note, and then clearing is possible.
 
 
 Extensions
 ----------
 
+Using ChainCash contract is not the efficient option for implementing simple LETS just (in comparison with LETS-specific 
+contracts in https://docs.ergoplatform.com/uses/lets/trustless-lets/#implementation). But with ChainCash a LETS can be 
+a part of more complex financial system. And chain of ownership can be useful for integration.
 
-Network Fees
-------------
+For example, if a note has a signature of special LETS member on it (eg a local municipality), it can be accepted by a 
+party outside LETS, and if the party has a reserve, then the note may have value for other non-LETS agents. Also, we 
+can imagine a note being accepted if enough known LETS members have signed it.
