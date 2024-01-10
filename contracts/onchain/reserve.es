@@ -25,7 +25,6 @@
             selfOut.tokens == SELF.tokens &&
             selfOut.R4[GroupElement].get == SELF.R4[GroupElement].get
 
-
     if (action == 0) {
       // redemption path
 
@@ -51,8 +50,22 @@
       val oracleRate = goldOracle.R4[Long].get / 1000000 // normalize to nanoerg per mg of gold
 
       // 2% redemption fee
-      val nanoergsToRedeem = noteValue * oracleRate * 98 / 100
-      val redeemCorrect = (SELF.value - selfOut.value) <= nanoergsToRedeem
+      val maxToRedeem = noteValue * oracleRate * 98 / 100
+      val redeemed = SELF.value - selfOut.value
+
+      val buyBackCorrect = if (redeemed > 0) {
+        val toOracle = redeemed * 2 / 1000
+        val buyBackNFTId = fromBase64("EZoGigEZZw3opdJGfaM99XKQPGSqp7bqTJZo7wz+AyU=")
+        val buyBackInput = INPUTS(2)
+        val buyBackOutput = OUTPUTS(2)
+
+        buyBackInput.tokens(0)._1 == buyBackNFTId &&
+            buyBackOutput.tokens(0)._1 == buyBackNFTId &&
+            (buyBackOutput.value - buyBackInput.value) >= toOracle
+      } else {
+        true
+      }
+      val redeemCorrect = (redeemed <= maxToRedeem) && buyBackCorrect
 
       val proof = getVar[Coll[Byte]](1).get
       val value = history.get(reserveId, proof).get
@@ -78,7 +91,11 @@
       // we check that receipt is properly formed, but we do not check receipt's contract here,
       // to avoid circular dependency as receipt contract depends on (hash of) our contract,
       // thus we are checking receipt contract in note and receipt contracts
-      val receiptOutIndex = getVar[Int](5).get
+      val receiptOutIndex = if (redeemed == 0) {
+         getVar[Int](5).get
+      } else {
+         1
+      }
       val receiptOut = OUTPUTS(receiptOutIndex)
       val properReceipt =
         receiptOut.tokens(0) == noteInput.tokens(0) &&
@@ -88,6 +105,7 @@
         receiptOut.R6[Int].get <= HEIGHT &&
         receiptOut.R7[GroupElement].get == ownerKey
 
+      // todo: could this be checked all the time ? if so then receiptMode can be eliminated
       val positionCorrect = if (receiptMode) {
         position < noteInput.R5[Long].get
       } else {

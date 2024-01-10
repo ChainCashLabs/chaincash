@@ -10,7 +10,7 @@ import org.ergoplatform.sdk.ErgoToken
 import org.scalatest.{Matchers, PropSpec}
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import scorex.crypto.hash.Blake2b256
-import scorex.util.encode.Base16
+import scorex.util.encode.{Base16, Base64}
 import sigmastate.AvlTreeFlags
 import sigmastate.basics.DLogProtocol.ProveDlog
 import sigmastate.eval._
@@ -39,6 +39,8 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
   val reserveNFT = "161A3A5250655368566D597133743677397A24432646294A404D635166546A57"
   val reserveNFTBytes = Base16.decode(reserveNFT).get
 
+  val buyBackNftId = "119a068a0119670de8a5d2467da33df572903c64aaa7b6ea4c9668ef0cfe0325"
+
   val holderSecret = SigUtils.randBigInt
   val holderPk = Constants.g.exp(holderSecret.bigInteger)
   val changeAddress = P2PKAddress(ProveDlog(holderPk)).toString()
@@ -54,6 +56,10 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
   val fakeTxId4 = "f9e5ce5aa0d95f5d54a7bc89c46730d9662397067250aa18a0039631c0f5b806"
   val fakeTxId5 = "f9e5ce5aa0d95f5d54a7bc89c46730d9662397067250aa18a0039631c0f5b105"
   val fakeIndex = 1.toShort
+
+  def trueScript = "sigmaProp(true)"
+  def trueErgoTree = Constants.compile(trueScript)
+  def trueErgoContract = new ErgoTreeContract(trueErgoTree, Constants.networkType)
 
   def createOut(contract: String,
                 value: Long,
@@ -253,9 +259,18 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
             new ContextVar(1, ErgoValue.of(lookupProof.bytes)),
             new ContextVar(2, ErgoValue.of(Longs.toByteArray(noteValue))),
             new ContextVar(3, ErgoValue.of(position)),
-            new ContextVar(4, ErgoValue.of(false)),
-            new ContextVar(5, ErgoValue.of(1))
+            new ContextVar(4, ErgoValue.of(false))
           )
+
+      val buyBackInput =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue)
+          .tokens(new ErgoToken(buyBackNftId, 1))
+          .contract(trueErgoContract)
+          .build()
+          .convertToInputWith(fakeTxId5, fakeIndex)
 
       val oracleRate = 500000L // nanoErg per mg
       val oracleDataInput =
@@ -283,9 +298,16 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         tokens = Array(new ErgoToken(noteTokenId, noteValue))
       )
 
-      val inputs = Array[InputBox](noteInput, reserveInput)
+      val buyBackOutput = createOut(
+        trueScript,
+        buyBackInput.getValue + (oracleRate * 98 / 100) * 2 / 1000,
+        registers = Array(),
+        tokens = Array(new ErgoToken(buyBackNftId, 1))
+      )
+
+      val inputs = Array[InputBox](noteInput, reserveInput, buyBackInput)
       val dataInputs = Array[InputBox](oracleDataInput)
-      val outputs = Array[OutBoxImpl](reserveOutput, receiptOutput)
+      val outputs = Array[OutBoxImpl](reserveOutput, receiptOutput, buyBackOutput)
 
       createTx(
         inputs,
@@ -399,9 +421,18 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
             new ContextVar(1, ErgoValue.of(lookupBProof.bytes)),
             new ContextVar(2, ErgoValue.of(Longs.toByteArray(bValue))),
             new ContextVar(3, ErgoValue.of(bPosition)),
-            new ContextVar(4, ErgoValue.of(false)),
-            new ContextVar(5, ErgoValue.of(1))
+            new ContextVar(4, ErgoValue.of(false))
           )
+
+      val buyBackInput =
+        ctx
+          .newTxBuilder()
+          .outBoxBuilder
+          .value(minValue)
+          .tokens(new ErgoToken(buyBackNftId, 1))
+          .contract(trueErgoContract)
+          .build()
+          .convertToInputWith(fakeTxId5, fakeIndex)
 
       val reserveOutput = createOut(
         Constants.reserveContract,
@@ -417,9 +448,17 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         tokens = Array(new ErgoToken(noteTokenId, finalNoteValue))
       )
 
-      val inputs = Array[InputBox](noteInput, reserveBInput)
+      val buyBackOutput = createOut(
+        trueScript,
+        buyBackInput.getValue + (oracleRate * 98 / 100) * 2 / 1000,
+        registers = Array(),
+        tokens = Array(new ErgoToken(buyBackNftId, 1))
+      )
+
+
+      val inputs = Array[InputBox](noteInput, reserveBInput, buyBackInput)
       val dataInputs = Array[InputBox](oracleDataInput)
-      val outputs = Array[OutBoxImpl](reserveOutput, receiptOutput)
+      val outputs = Array[OutBoxImpl](reserveOutput, receiptOutput, buyBackOutput)
 
       val firstTx = createTx(
         inputs,
@@ -451,8 +490,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
             new ContextVar(1, ErgoValue.of(lookupAProof.bytes)),
             new ContextVar(2, ErgoValue.of(Longs.toByteArray(aValue))),
             new ContextVar(3, ErgoValue.of(aPosition)),
-            new ContextVar(4, ErgoValue.of(true)),
-            new ContextVar(5, ErgoValue.of(1))
+            new ContextVar(4, ErgoValue.of(true))
           )
 
       val reserveAOutput = createOut(
@@ -469,9 +507,9 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         tokens = Array(new ErgoToken(noteTokenId, finalNoteValue))
       )
 
-      val inputs2 = Array[InputBox](receiptInput, reserveAInput, fundingBox)
+      val inputs2 = Array[InputBox](receiptInput, reserveAInput, buyBackInput, fundingBox)
       val dataInputs2 = Array[InputBox](oracleDataInput)
-      val outputs2 = Array[OutBoxImpl](reserveAOutput, receiptAOutput)
+      val outputs2 = Array[OutBoxImpl](reserveAOutput, receiptAOutput, buyBackOutput)
 
       createTx(
         inputs2,
