@@ -47,8 +47,9 @@ More introductory materials:
 
 ## ChainCash Server
 
-ChainCash server is planned software acting as a self-sovereign bank with client-side notes
-validation. Currently only [design document](docs/server.md) is available.
+ChainCash server is software acting as a self-sovereign bank with client-side notes
+validation. It can be found at [https://github.com/ChainCashLabs/chaincash-rs](https://github.com/ChainCashLabs/chaincash-rs). 
+Initial version of [design document](docs/server.md) is also available.
 
 ## Contents Of This Repository
 
