@@ -55,6 +55,7 @@
 
       val buyBackCorrect = if (redeemed > 0) {
         val toOracle = redeemed * 2 / 1000
+        // todo: externalize buyback NFT id
         val buyBackNFTId = fromBase64("EZoGigEZZw3opdJGfaM99XKQPGSqp7bqTJZo7wz+AyU=")
         val buyBackInput = INPUTS(2)
         val buyBackOutput = OUTPUTS(2)
