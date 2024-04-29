@@ -1,0 +1,4 @@
+Proof-of-work cryptocurrencies like Bitcoin as well as tokenized (on a blockchain) real-world assets provide unique possibility to have globally transparent collateral to issue new money (e.g. in form of stablecoin) on top of. Reliable derivatives are overcollateralized, but that means inelasticity of supply. Most of community currencies have elasticity of supply, but rely on trust so they are local, often have 
+transparency issues, and blockchain as solution for transparency could be too expensive for them. 
+
+In this work we propose global peer-to-peer money issuance system on top of collateral or trust. 
