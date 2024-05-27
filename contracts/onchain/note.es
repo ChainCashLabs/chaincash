@@ -77,7 +77,9 @@
       val outputDigest: Coll[Byte] = nextTree.get.digest
 
       def nextNoteCorrect(noteOut: Box): Boolean = {
-          val insertionPerformed = noteOut.R4[AvlTree].get.digest == outputDigest
+          val outHistory = noteOut.R4[AvlTree].get
+
+          val insertionPerformed = outHistory.digest == outputDigest && outHistory.enabledOperations == history.enabledOperations
           val sameScript = noteOut.propositionBytes == SELF.propositionBytes
           val nextHolderDefined = noteOut.R5[GroupElement].isDefined
           val valuePreserved = noteOut.value >= SELF.value
