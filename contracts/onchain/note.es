@@ -51,13 +51,13 @@
       val noteValueBytes = longToByteArray(noteValue)
       val message = positionBytes ++ noteValueBytes ++ noteTokenId
 
-      // Computing challenge
-      val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
-      val eInt = byteArrayToBigInt(e) // challenge as big integer
-
       // a of signature in (a, z)
       val a = getVar[GroupElement](1).get
       val aBytes = a.getEncoded
+
+      // Computing challenge
+      val e: Coll[Byte] = blake2b256(aBytes ++ message ++ holder.getEncoded) // strong Fiat-Shamir
+      val eInt = byteArrayToBigInt(e) // challenge as big integer
 
       // z of signature in (a, z)
       val zBytes = getVar[Coll[Byte]](2).get

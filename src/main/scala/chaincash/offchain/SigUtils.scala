@@ -18,10 +18,14 @@ object SigUtils {
 
   @tailrec
   def sign(msg: Array[Byte], secretKey: BigInt): (GroupElement, BigInt) = {
-    val r = randBigInt
     val g: GroupElement = CryptoConstants.dlogGroup.generator
+
+    val pk = g.exp(secretKey.bigInteger)
+
+    val r = randBigInt
     val a: GroupElement = g.exp(r.bigInteger)
-    val z = (r + secretKey * BigInt(scorex.crypto.hash.Blake2b256(msg))) % CryptoConstants.groupOrder
+    val e = scorex.crypto.hash.Blake2b256(a.getEncoded.toArray ++ msg ++ pk.getEncoded.toArray)
+    val z = (r + secretKey * BigInt(e)) % CryptoConstants.groupOrder
 
     if(z.bitLength <= 255) {
       (a, z)
