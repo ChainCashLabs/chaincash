@@ -42,7 +42,7 @@
       val message = positionBytes ++ noteValueBytes ++ SELF.id
 
       // Computing challenge
-      val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
+      val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir - todo: should be strong
       val eInt = byteArrayToBigInt(e) // challenge as big integer
 
       // a of signature in (a, z)

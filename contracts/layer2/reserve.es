@@ -50,7 +50,7 @@
       val rLeafZBytes = getVar[Coll[Byte]](6).get
       val rLeafProperFormat = rLeafTreeHashDigest.size == 32 && rLeafReserveId.size == 32 && rLeafHolderId.size == 32
       val rLeafMessage = rLeafTreeHashDigest ++ rLeafReserveId ++ longToByteArray(rLeafNoteValue) ++ rLeafHolderId
-      val rLeafEInt = byteArrayToBigInt(blake2b256(rLeafMessage)) // weak Fiat-Shamir
+      val rLeafEInt = byteArrayToBigInt(blake2b256(rLeafMessage)) // weak Fiat-Shamir - todo: should be strong
       val rLeafZ = byteArrayToBigInt(rLeafZBytes)
       val rLeafReserveIdValid = rLeafReserve.tokens(0)._1 == rLeafReserveId
       val rLeafReservePk = rLeafReserve.R4[GroupElement].get
@@ -66,7 +66,7 @@
       val holderZBytes = getVar[Coll[Byte]](12).get
       val holderProperFormat = holderTreeHashDigest.size == 32 && holderReserveId.size == 32 && holderHolderId.size == 32
       val holderMessage = holderTreeHashDigest ++ holderReserveId ++ longToByteArray(holderNoteValue) ++ holderHolderId
-      val holderEInt = byteArrayToBigInt(blake2b256(holderMessage)) // weak Fiat-Shamir
+      val holderEInt = byteArrayToBigInt(blake2b256(holderMessage)) // weak Fiat-Shamir - todo: should be strong
       val holderZ = byteArrayToBigInt(holderZBytes)
       val holderReserveIdValid = holderReserve.tokens(0)._1 == holderReserveId
       val holderReservePk = holderReserve.R4[GroupElement].get

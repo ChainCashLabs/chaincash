@@ -51,7 +51,7 @@
         val message = treeHashDigest ++ reserveId ++ longToByteArray(noteValue) ++ holderId
 
         // Computing challenge
-        val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
+        val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir - todo: should be strong
         val eInt = byteArrayToBigInt(e) // challenge as big integer
 
         val g: GroupElement = groupGenerator
@@ -101,7 +101,7 @@
           val message = treeHashDigest ++ reserveId ++ longToByteArray(noteValue) ++ holderId
 
           // Computing challenge
-          val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir
+          val e: Coll[Byte] = blake2b256(message) // weak Fiat-Shamir - todo: should be strong
           val eInt = byteArrayToBigInt(e) // challenge as big integer
 
           val g: GroupElement = groupGenerator
@@ -164,7 +164,7 @@
         val altReserveLeafZBytes = getVar[Coll[Byte]](7).get
         val altReserveLeafProperFormat = altReserveLeafTreeHash.size == 32 && altReserveLeafReserveId.size == 32 && altReserveLeafHolderId.size == 32
         val altReserveLeafMessage = altReserveLeafTreeHash ++ altReserveLeafReserveId ++ longToByteArray(altReserveLeafNoteValue) ++ altReserveLeafHolderId
-        val altReserveLeafEInt = byteArrayToBigInt(blake2b256(altReserveLeafMessage)) // weak Fiat-Shamir
+        val altReserveLeafEInt = byteArrayToBigInt(blake2b256(altReserveLeafMessage)) // weak Fiat-Shamir - todo: should be strong
         val altReserveLeafZ = byteArrayToBigInt(altReserveLeafZBytes)
         val altReserveLeafReserveIdValid = altReserve.tokens(0)._1 == altReserveLeafReserveId
         val altReserveLeafReservePk = altReserve.R4[GroupElement].get
@@ -197,7 +197,7 @@
         val lastLeafZBytes = getVar[Coll[Byte]](6).get
         val lastLeafProperFormat = lastLeafTreeHashDigest.size == 32 && lastLeafReserveId.size == 32 && lastLeafHolderId.size == 32
         val lastLeafMessage = lastLeafTreeHashDigest ++ lastLeafReserveId ++ longToByteArray(lastLeafNoteValue) ++ lastLeafHolderId
-        val lastLeafEInt = byteArrayToBigInt(blake2b256(lastLeafMessage)) // weak Fiat-Shamir
+        val lastLeafEInt = byteArrayToBigInt(blake2b256(lastLeafMessage)) // weak Fiat-Shamir - todo: should be strong
         val lastLeafZ = byteArrayToBigInt(lastLeafZBytes)
         val lastLeafReserveIdValid = lastLeafReserve.tokens(0)._1 == lastLeafReserveId
         val lastLeafReservePk = lastLeafReserve.R4[GroupElement].get
@@ -220,7 +220,7 @@
         val holderZBytes = getVar[Coll[Byte]](13).get
         val holderProperFormat = holderTreeHashDigest.size == 32 && holderReserveId.size == 32 && holderHolderId.size == 32
         val holderMessage = holderTreeHashDigest ++ holderReserveId ++ longToByteArray(holderNoteValue) ++ holderHolderId
-        val holderEInt = byteArrayToBigInt(blake2b256(holderMessage)) // weak Fiat-Shamir
+        val holderEInt = byteArrayToBigInt(blake2b256(holderMessage)) // weak Fiat-Shamir - todo: should be strong
         val holderZ = byteArrayToBigInt(holderZBytes)
         val holderReserveIdValid = holderReserve.tokens(0)._1 == holderReserveId
         val holderReservePk = holderReserve.R4[GroupElement].get
@@ -252,7 +252,7 @@
         val posLeafZBytes = getVar[Coll[Byte]](7).get
         val posLeafProperFormat = posLeafTreeHash.size == 32 && posLeafReserveId.size == 32 && posLeafHolderId.size == 32
         val posLeafMessage = posLeafTreeHash ++ posLeafReserveId ++ longToByteArray(posLeafNoteValue) ++ posLeafHolderId
-        val posLeafEInt = byteArrayToBigInt(blake2b256(posLeafMessage)) // weak Fiat-Shamir
+        val posLeafEInt = byteArrayToBigInt(blake2b256(posLeafMessage)) // weak Fiat-Shamir - todo: should be strong
         val posLeafZ = byteArrayToBigInt(posLeafZBytes)
         val posLeafReserveIdValid = posReserve.tokens(0)._1 == posLeafReserveId
         val posLeafReservePk = posReserve.R4[GroupElement].get
@@ -286,7 +286,7 @@
       val lastLeafZBytes = getVar[Coll[Byte]](6).get
       val lastLeafProperFormat = lastLeafTreeHashDigest.size == 32 && lastLeafReserveId.size == 32 && lastLeafHolderId.size == 32
       val lastLeafMessage = lastLeafTreeHashDigest ++ lastLeafReserveId ++ longToByteArray(lastLeafNoteValue) ++ lastLeafHolderId
-      val lastLeafEInt = byteArrayToBigInt(blake2b256(lastLeafMessage)) // weak Fiat-Shamir
+      val lastLeafEInt = byteArrayToBigInt(blake2b256(lastLeafMessage)) // weak Fiat-Shamir - todo: should be strong
       val lastLeafZ = byteArrayToBigInt(lastLeafZBytes)
       val lastLeafReserveIdValid = lastLeafReserve.tokens(0)._1 == lastLeafReserveId
       val lastLeafReservePk = lastLeafReserve.R4[GroupElement].get
