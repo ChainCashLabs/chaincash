@@ -68,8 +68,12 @@
       }
       val redeemCorrect = (redeemed <= maxToRedeem) && buyBackCorrect
 
+      val position = getVar[Long](3).get
+      val positionBytes = longToByteArray(position)
+
       val proof = getVar[Coll[Byte]](1).get
-      val value = history.get(reserveId, proof).get
+      val key = positionBytes ++ reserveId
+      val value = history.get(key, proof).get
 
       val aBytes = value.slice(0, 33)
       val zBytes = value.slice(33, value.size)
@@ -77,8 +81,8 @@
       val z = byteArrayToBigInt(zBytes)
 
       val maxValueBytes = getVar[Coll[Byte]](2).get
-      val position = getVar[Long](3).get
-      val message = longToByteArray(position) ++ maxValueBytes ++ noteTokenId
+
+      val message = positionBytes ++ maxValueBytes ++ noteTokenId
       val maxValue = byteArrayToLong(maxValueBytes)
 
       // Computing challenge

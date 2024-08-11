@@ -38,7 +38,9 @@ object Constants {
     AppkitHelpers.compile(new util.HashMap[String, Object](), ergoScript, networkPrefix)
   }
 
-  def emptyPlasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+
+  val chainCashPlasmaParameters = PlasmaParameters(40, None)
+  def emptyPlasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, chainCashPlasmaParameters)
   val emptyTreeErgoValue: ErgoValue[AvlTree] = emptyPlasmaMap.ergoValue
   val emptyTree: AvlTree = emptyTreeErgoValue.getValue
 

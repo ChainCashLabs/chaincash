@@ -1,6 +1,7 @@
 package chaincash
 
 import chaincash.contracts.Constants
+import chaincash.contracts.Constants.chainCashPlasmaParameters
 import chaincash.offchain.SigUtils
 import com.google.common.primitives.Longs
 import org.ergoplatform.P2PKAddress
@@ -152,12 +153,15 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
 
       val position = 0L
 
-      val msg: Array[Byte] = Longs.toByteArray(position) ++ Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
+      val positionBytes = Longs.toByteArray(position)
+
+      val msg: Array[Byte] = positionBytes ++ Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
       val sig = SigUtils.sign(msg, holderSecret)
 
-      val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+      val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, chainCashPlasmaParameters)
       val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray
-      val insertRes = plasmaMap.insert(reserveNFTBytes -> sigBytes)
+      val key = positionBytes ++ reserveNFTBytes
+      val insertRes = plasmaMap.insert(key -> sigBytes)
       val insertProof = insertRes.proof
       val outTree = plasmaMap.ergoValue.getValue
 
@@ -218,16 +222,18 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
     createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
       val position = 0L
 
-      val msg: Array[Byte] = Longs.toByteArray(position) ++ Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
+      val positionBytes = Longs.toByteArray(position)
+      val msg: Array[Byte] = positionBytes ++ Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
       val sig = SigUtils.sign(msg, holderSecret)
 
-      val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+      val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, chainCashPlasmaParameters)
       val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray
-      val insertRes = plasmaMap.insert(reserveNFTBytes -> sigBytes)
+      val keyBytes = positionBytes ++ reserveNFTBytes
+      val insertRes = plasmaMap.insert(keyBytes -> sigBytes)
       val _ = insertRes.proof
       val historyTree = plasmaMap.ergoValue.getValue
 
-      val lookupRes = plasmaMap.lookUp(reserveNFTBytes)
+      val lookupRes = plasmaMap.lookUp(keyBytes)
       val lookupProof = lookupRes.proof
 
       val noteInput =
@@ -327,7 +333,6 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
     val reserveBSecret = SigUtils.randBigInt
     val reserveBPk = Constants.g.exp(reserveBSecret.bigInteger)
     val reserveCSecret = SigUtils.randBigInt
-    val reserveCPk = Constants.g.exp(reserveCSecret.bigInteger)
 
     val reserveANFT = "121A3A5250655368566D597133743677397A24432646294A404D635166546A57"
     val reserveANFTBytes = Base16.decode(reserveANFT).get
@@ -341,25 +346,31 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
 
     // forming history A -> B -> C -> current holder
     val aPosition = 0L
+    val aPositionBytes = Longs.toByteArray(aPosition)
     val aValue = 100L
-    val msg0: Array[Byte] = Longs.toByteArray(aPosition) ++ Longs.toByteArray(100) ++ Base16.decode(noteTokenId).get
+    val msg0: Array[Byte] = aPositionBytes ++ Longs.toByteArray(100) ++ Base16.decode(noteTokenId).get
     val sig0 = SigUtils.sign(msg0, reserveASecret)
     val sig0Bytes = GroupElementSerializer.toBytes(sig0._1) ++ sig0._2.toByteArray
 
     val bPosition = 1L
+    val bPositionBytes = Longs.toByteArray(bPosition)
     val bValue = 50L
-    val msg1: Array[Byte] = Longs.toByteArray(bPosition) ++ Longs.toByteArray(bValue) ++ Base16.decode(noteTokenId).get
+    val msg1: Array[Byte] = bPositionBytes ++ Longs.toByteArray(bValue) ++ Base16.decode(noteTokenId).get
     val sig1 = SigUtils.sign(msg1, reserveBSecret)
     val sig1Bytes = GroupElementSerializer.toBytes(sig1._1) ++ sig1._2.toByteArray
 
     val finalNoteValue = 1
     val cPosition = 2L
-    val msg2: Array[Byte] = Longs.toByteArray(cPosition) ++ Longs.toByteArray(finalNoteValue) ++ Base16.decode(noteTokenId).get
+    val cPositionBytes = Longs.toByteArray(cPosition)
+    val msg2: Array[Byte] = cPositionBytes ++ Longs.toByteArray(finalNoteValue) ++ Base16.decode(noteTokenId).get
     val sig2 = SigUtils.sign(msg2, reserveCSecret)
     val sig2Bytes = GroupElementSerializer.toBytes(sig2._1) ++ sig2._2.toByteArray
 
-    val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
-    val insertRes = plasmaMap.insert(Seq(reserveANFTBytes -> sig0Bytes, reserveBNFTBytes -> sig1Bytes, reserveCNFTBytes -> sig2Bytes):_*)
+    val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, chainCashPlasmaParameters)
+    val keyABytes = aPositionBytes ++ reserveANFTBytes
+    val keyBBytes = bPositionBytes ++ reserveBNFTBytes
+    val keyCBytes = cPositionBytes ++ reserveCNFTBytes
+    val insertRes = plasmaMap.insert(Seq(keyABytes -> sig0Bytes, keyBBytes -> sig1Bytes, keyCBytes -> sig2Bytes):_*)
     val _ = insertRes.proof
     val historyTree = plasmaMap.ergoValue.getValue
 
@@ -403,7 +414,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
             new ContextVar(0, ErgoValue.of(-1: Byte))
           )
 
-      val lookupBRes = plasmaMap.lookUp(reserveBNFTBytes)
+      val lookupBRes = plasmaMap.lookUp(keyBBytes)
       val lookupBProof = lookupBRes.proof
 
       val reserveBInput =
@@ -472,7 +483,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
 
       val receiptInput = firstTx.getOutputsToSpend.get(1)
 
-      val lookupARes = plasmaMap.lookUp(reserveANFTBytes)
+      val lookupARes = plasmaMap.lookUp(keyABytes)
       val lookupAProof = lookupARes.proof
 
       val reserveAInput =
@@ -535,6 +546,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .convertToInputWith(fakeTxId5, fakeIndex)
 
       val position = 0L
+      val positionBytes = Longs.toByteArray(position)
 
       val reserve1NFT = "261A3A5250655368566D597133743677397A24432646294A404D635166546A57"
       val reserve1NFTBytes = Base16.decode(reserve1NFT).get
@@ -550,26 +562,28 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val holder2Secret = SigUtils.randBigInt
       val holder2Pk = Constants.g.exp(holder2Secret.bigInteger)
 
-      val msg1: Array[Byte] = Longs.toByteArray(position) ++ Longs.toByteArray(noteValue) ++ Base16.decode(note1TokenId).get
+      val msg1: Array[Byte] = positionBytes ++ Longs.toByteArray(noteValue) ++ Base16.decode(note1TokenId).get
       val sig1 = SigUtils.sign(msg1, holder1Secret)
 
-      val msg2: Array[Byte] = Longs.toByteArray(position) ++ Longs.toByteArray(noteValue) ++ Base16.decode(note2TokenId).get
+      val msg2: Array[Byte] = positionBytes ++ Longs.toByteArray(noteValue) ++ Base16.decode(note2TokenId).get
       val sig2 = SigUtils.sign(msg2, holder2Secret)
 
-      val plasmaMap1 = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+      val plasmaMap1 = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, chainCashPlasmaParameters)
       val sig1Bytes = GroupElementSerializer.toBytes(sig1._1) ++ sig1._2.toByteArray
-      val insertRes1 = plasmaMap1.insert(reserve1NFTBytes -> sig1Bytes)
+      val key1Bytes = positionBytes ++ reserve1NFTBytes
+      val insertRes1 = plasmaMap1.insert(key1Bytes -> sig1Bytes)
       val i1 = insertRes1.proof
       val historyTree1 = plasmaMap1.ergoValue.getValue
-      val lookupRes1 = plasmaMap1.lookUp(reserve1NFTBytes)
+      val lookupRes1 = plasmaMap1.lookUp(key1Bytes)
       val lookupProof1 = lookupRes1.proof
 
-      val plasmaMap2 = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+      val plasmaMap2 = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, chainCashPlasmaParameters)
+      val key2Bytes = positionBytes ++ reserve2NFTBytes
       val sig2Bytes = GroupElementSerializer.toBytes(sig2._1) ++ sig2._2.toByteArray
-      val insertRes2 = plasmaMap2.insert(reserve2NFTBytes -> sig2Bytes)
+      val insertRes2 = plasmaMap2.insert(key2Bytes -> sig2Bytes)
       val i2 = insertRes2.proof
       val historyTree2 = plasmaMap2.ergoValue.getValue
-      val lookupRes2 = plasmaMap2.lookUp(reserve2NFTBytes)
+      val lookupRes2 = plasmaMap2.lookUp(key2Bytes)
       val lookupProof2 = lookupRes2.proof
 
       val note1Input =
@@ -698,7 +712,9 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
     createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
 
       val firstPosition = 0L
+      val firstPositionBytes = Longs.toByteArray(firstPosition)
       val secondPosition = 10L
+      val secondPositionBytes = Longs.toByteArray(secondPosition)
 
       val firstNoteTokenId = noteTokenId
       val secondNoteTokenId = Base16.encode(Blake2b256.apply(noteTokenId))
@@ -706,22 +722,23 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val firstNoteValue = 55
       val secondNoteValue = 60
 
-      val msg1: Array[Byte] = Longs.toByteArray(firstPosition) ++ Longs.toByteArray(firstNoteValue) ++ Base16.decode(firstNoteTokenId).get
-      val msg2: Array[Byte] = Longs.toByteArray(secondPosition) ++ Longs.toByteArray(secondNoteValue) ++ Base16.decode(secondNoteTokenId).get
+      val msg1: Array[Byte] = firstPositionBytes ++ Longs.toByteArray(firstNoteValue) ++ Base16.decode(firstNoteTokenId).get
+      val msg2: Array[Byte] = secondPositionBytes ++ Longs.toByteArray(secondNoteValue) ++ Base16.decode(secondNoteTokenId).get
       val sig1 = SigUtils.sign(msg1, holderSecret)
       val sig2 = SigUtils.sign(msg2, holderSecret)
 
-      def insertToEmptyTree(sig: (GroupElement, BigInt)): (Proof, AvlTree) = {
-        val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters.default)
+      def insertToEmptyTree(sig: (GroupElement, BigInt), positionBytes: Array[Byte]): (Proof, AvlTree) = {
+        val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, chainCashPlasmaParameters)
         val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray
-        val insertRes = plasmaMap.insert(reserveNFTBytes -> sigBytes)
+        val keyBytes = positionBytes ++ reserveNFTBytes
+        val insertRes = plasmaMap.insert(keyBytes -> sigBytes)
         val insertProof = insertRes.proof
         val outTree = plasmaMap.ergoValue.getValue
         insertProof -> outTree
       }
 
-      val (insertProof1, outTree1) = insertToEmptyTree(sig1)
-      val (insertProof2, outTree2) = insertToEmptyTree(sig2)
+      val (insertProof1, outTree1) = insertToEmptyTree(sig1, firstPositionBytes)
+      val (insertProof2, outTree2) = insertToEmptyTree(sig2, secondPositionBytes)
 
       val firstNoteInput =
         ctx

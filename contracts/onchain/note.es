@@ -69,7 +69,8 @@
       val properReserve = holder == reserve.R4[GroupElement].get
 
       val leafValue = aBytes ++ zBytes
-      val keyVal = (reserveId, leafValue)
+      val leafKey = positionBytes ++ reserveId
+      val keyVal = (leafKey, leafValue)
       val proof = getVar[Coll[Byte]](3).get
 
       val nextTree: Option[AvlTree] = history.insert(Coll(keyVal), proof)
