@@ -1,0 +1,14 @@
+rm ramics.aux
+rm ramics.out
+rm ramics.log
+rm ramics.bbl
+rm ramics.blg
+pdflatex ramics
+bibtex ramics
+pdflatex ramics
+pdflatex ramics
+rm ramics.aux
+rm ramics.out
+rm ramics.log
+rm ramics.bbl
+rm ramics.blg
