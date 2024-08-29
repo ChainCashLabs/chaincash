@@ -1,6 +1,7 @@
 {
     // receipt contract
     // it is possible to spend this box 3 years after, with tokens being necessarily burnt
+    // it protects from storage rent taking tokens
 
     // registers:
     // R4 - AvlTree - history of ownership for corresponding redeemed note
