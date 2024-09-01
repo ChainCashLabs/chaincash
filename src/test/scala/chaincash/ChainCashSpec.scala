@@ -34,13 +34,13 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
 
   val noteTokenId = "4b2d8b7beb3eaac8234d9e61792d270898a43934d6a27275e4f3a044609c9f2a"
 
-  val oracleNFT = "121A3A5250655368566D597133743677397A24432646294A404D635166546A57"
+  val oracleNFT = "3c45f29a5165b030fdb5eaf5d81f8108f9d8f507b31487dd51f4ae08fe07cf4a"
   val oracleNFTBytes = Base16.decode(oracleNFT).get
 
   val reserveNFT = "161A3A5250655368566D597133743677397A24432646294A404D635166546A57"
   val reserveNFTBytes = Base16.decode(reserveNFT).get
 
-  val buyBackNftId = "119a068a0119670de8a5d2467da33df572903c64aaa7b6ea4c9668ef0cfe0325"
+  val buyBackNftId = "bf24ed4af7eb5a7839c43aa6b240697d81b196120c837e1a941832c266d3755c"
 
   val holderSecret = SigUtils.randBigInt
   val holderPk = Constants.g.exp(holderSecret.bigInteger)

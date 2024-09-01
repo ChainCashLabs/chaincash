@@ -46,7 +46,8 @@
       // oracle provides gold price in nanoErg per kg in its R4 register
       val goldOracle = CONTEXT.dataInputs(0)
       // todo: externalize oracle NFT id
-      val properOracle = goldOracle.tokens(0)._1 == fromBase58("2DfY1K4rW9zPVaQgaDp2KXgnErjxKPbbKF5mq1851MJE")
+      // the ID below is from the mainnet
+      val properOracle = goldOracle.tokens(0)._1 == fromBase16("3c45f29a5165b030fdb5eaf5d81f8108f9d8f507b31487dd51f4ae08fe07cf4a")
       val oracleRate = goldOracle.R4[Long].get / 1000000 // normalize to nanoerg per mg of gold
 
       // 2% redemption fee
@@ -56,7 +57,8 @@
       val buyBackCorrect = if (redeemed > 0) {
         val toOracle = redeemed * 2 / 1000
         // todo: externalize buyback NFT id
-        val buyBackNFTId = fromBase64("EZoGigEZZw3opdJGfaM99XKQPGSqp7bqTJZo7wz+AyU=")
+        // the ID below is from the mainnet
+        val buyBackNFTId = fromBase16("bf24ed4af7eb5a7839c43aa6b240697d81b196120c837e1a941832c266d3755c")
         val buyBackInput = INPUTS(2)
         val buyBackOutput = OUTPUTS(2)
 
