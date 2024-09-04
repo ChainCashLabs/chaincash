@@ -70,11 +70,14 @@ Global Digital Peer-to-Peer Environment}
 
 \begin{abstract}
 In this paper we introduce a blockchain-based protocol to create money in self-sovereign way via trust or collateral. The
-protocol allows for elastic money creation in peer-to-peer environment. For that, acceptance of notes created or signed
-by other peers made an individual choice. Similarly to spending-signed currencies, every spender is signing and backing a
-note.
+protocol allows for elastic money creation in peer-to-peer environment. Acceptance of notes created or signed
+by other peers made an individual choice. Similarly to spender-signed currencies, every spender is signing and backing a
+note. Every signature is associated with a reserve, which can be made of any blockchain token, or be empty. A note may
+be redeemed against any reserve of its signers, and then re-redeemed against a reserve associated with earlier signature.
 
-We have implemented our proposal in software. The core concept is a payment server.
+We have implemented our proposal in software in form of a payment server, supporting flexible rules for notes acceptance,
+based on blacklist, whitelist, collateralization ratio. We have shown how to implement a local exchange trading system (LETS)
+and mutual credit clearing using our software.
 \end{abstract}
 
 \section{Introduction}
