@@ -114,7 +114,6 @@
       // it is checked that note token is locked in receipt in the reserve contract
 
       // we check that the note is spent along with a reserve contract box.
-      // for that, we fix reserve input position @ #1
       // we drop version byte during ergotrees comparison
       // signature of note holder is also required
 
