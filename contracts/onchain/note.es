@@ -14,7 +14,7 @@
     // registers:
     // R4 - history of ownership (under AVL+ tree),
     //      tree contains reserveId as a key, signature as value,
-    //      and message is position in the tree, note value and token id
+    //      and message under the signature is position in the tree, note value and token id
     // R5 - current holder of the note (public key given as a group element)
     // R6 - current length of the chain (as long int)
     //
@@ -107,7 +107,8 @@
       // action < 0
 
       // redemption path
-      // called by setting action variable to any negative value, -1 considered as standard by offchain apps
+      // called by setting action variable to any negative value
+      // absolute value of the action denotes index of reserve in transaction inputs
 
       // we just check current holder's signature here
 
