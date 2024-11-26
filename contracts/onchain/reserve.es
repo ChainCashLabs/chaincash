@@ -34,6 +34,7 @@
 
       val g: GroupElement = groupGenerator
 
+      // if set, re-redemption against receipt data is done, otherwise, a note is redeemed
       val receiptMode = getVar[Boolean](4).get
 
       // read note data if receiptMode == false, receipt data otherwise
@@ -54,6 +55,7 @@
       val maxToRedeem = noteValue * oracleRate * 98 / 100
       val redeemed = SELF.value - selfOut.value
 
+      // 0.2% going to buyback contract to support oracles network
       val buyBackCorrect = if (redeemed > 0) {
         val toOracle = redeemed * 2 / 1000
         // todo: externalize buyback NFT id
