@@ -102,7 +102,8 @@
         selfOutput.tokens(0) == SELF.tokens(0) && nextNoteCorrect(selfOutput)
       }
 
-      sigmaProp(properSignature && properReserve && outputsValid)
+      // proveDlog(holder) is needed to prevent changing output notes in the mempool
+      sigmaProp(proveDlog(holder) && properSignature && properReserve && outputsValid)
     } else {
       // action < 0
 

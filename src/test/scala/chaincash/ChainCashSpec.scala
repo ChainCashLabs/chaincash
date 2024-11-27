@@ -211,7 +211,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           outputs,
           fee = None,
           changeAddress,
-          Array[String](),
+          Array[String](holderSecret.toString()),
           false
         )
       }
@@ -835,7 +835,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           outputs,
           fee = Some(feeValue),
           changeAddress,
-          Array[String](),
+          Array[String](holderSecret.toString()),
           false
         )
       }
