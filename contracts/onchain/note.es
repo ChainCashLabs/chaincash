@@ -19,11 +19,12 @@
     // R6 - current length of the chain (as long int)
     //
     // tokens:
-    // #0 - token which is denoting notes started from an initial one which has all the tokens of this ID
+    // #0 - token which amount is equal to note value at the moment of issueance, in unit of account (mg of gold).
+    //      The token is denoting notes started from an initial one which has all the tokens of this ID
     //
     //  to create a note (issue new money accounted in milligrams of gols), one needs to create a box locked with this
     //  contract, R4 containing empty AVL+ tree digest, R5 containing public key (encoded elliptic curve point) of the
-    //  issuer, R6 equals to 0, and tokens slot #0 contains all the tokens issued (maybe in the same transaction). If
+    //  issuer, R6 equals to 0, and tokens slot #0 contains new token with all the issuance locked in the box. If
     //  any of the conditions not met (any register has another value, some tokens sent to other address or contract),
     //  the note should be ignored by ChainCash software
 

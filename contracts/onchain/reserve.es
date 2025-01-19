@@ -1,5 +1,5 @@
 {
-    // ERG variant
+    // Contract for reserve (in ERG only)
 
     // Data:
     //  - token #0 - identifying singleton token
