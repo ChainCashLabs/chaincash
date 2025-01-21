@@ -16,7 +16,7 @@
     //      tree contains reserveId as a key, signature as value,
     //      and message under the signature is position in the tree, note value and token id
     // R5 - current holder of the note (public key given as a group element)
-    // R6 - current length of the chain (as long int)
+    // R6 - current length of the spendings chain (as long int)
     //
     // tokens:
     // #0 - token which amount is equal to note value at the moment of issueance, in unit of account (mg of gold).
