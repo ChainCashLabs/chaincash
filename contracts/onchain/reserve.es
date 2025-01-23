@@ -4,16 +4,12 @@
     // Data:
     //  - token #0 - identifying singleton token
     //  - R4 - signing key (as a group element)
-    //  - R5 - refund init height (None if not set) - int
-    //  - R6 - amount to refund (None if not set) - long
-    //  - R7 - trees of all the note tokens issued
+    //  - R5 - trees of all the note tokens issued TODO: check preservation in actions
     //
     // Actions:
     //  - redeem note (#0)
     //  - top up      (#1)
-    //  - init refund (#2)
-    //  - cancel refund (#3)
-    //  - complete refund (#4)
+    //  - mint note (#2)
 
     val v = getVar[Byte](0).get
     val action = v / 10
@@ -27,26 +23,6 @@
             selfOut.propositionBytes == SELF.propositionBytes &&
             selfOut.tokens == SELF.tokens &&
             selfOut.R4[GroupElement].get == SELF.R4[GroupElement].get
-
-    def selfRegisters(checks: (Boolean, Boolean)) = {
-        val refundCheck = checks._1
-        val noteTreeCheck = checks._2
-
-        val refundRegisters = if(refundCheck) {
-            selfOut.R5[Int] == SELF.R5[Int] &&
-            selfOut.R6[Long] == SELF.R6[Long]
-        } else {
-            true
-        }
-
-        val noteTree = if(noteTreeCheck) {
-            selfOut.R7[AvlTree] == SELF.R7[AvlTree]
-        } else {
-          true
-        }
-
-        refundRegisters && noteTree
-    }
 
     if (action == 0) {
       // redemption path
@@ -144,35 +120,15 @@
         true
       }
 
-      sigmaProp(selfPreserved && selfRegisters((true, true)) && properOracle && redeemCorrect && properSignature && properReceipt && positionCorrect)
+      sigmaProp(selfPreserved && properOracle && redeemCorrect && properSignature && properReceipt && positionCorrect)
     } else if (action == 1) {
       // top up
-      sigmaProp(selfPreserved && selfRegisters((true, true)) && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added
-    } else if (action == 5) {
+      sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added
+    } else if (action == 2) {
       // issue a note
-      sigmaProp(selfPreserved && selfRegisters((true, false)))
+      sigmaProp(selfPreserved)
     } else {
-      // todo: write tests for refund paths, document them
-      if (action == 2) {
-        // init refund
-        val correctHeight = selfOut.R5[Int].get >= HEIGHT - 5
-        val correctValue = selfOut.value >= SELF.value
-        sigmaProp(selfPreserved && selfRegisters((false, true)) && correctHeight && correctValue) && proveDlog(ownerKey)
-      } else if (action == 3) {
-        // cancel refund
-        val correctHeight = !(selfOut.R5[Int].isDefined)
-        val correctValue = selfOut.value >= SELF.value
-        sigmaProp(selfPreserved && selfRegisters((false, true)) && correctHeight && correctValue) && proveDlog(ownerKey)
-      } else if (action == 4) {
-        // complete refund
-        val refundNotificationPeriod = 14400 // 20 days
-        val correctHeight = (SELF.R5[Int].get + refundNotificationPeriod) <= HEIGHT
-        val refundLimit = SELF.R6[Long].get
-        val correctValue = SELF.value - selfOut.value <= refundLimit
-        sigmaProp(selfPreserved && selfRegisters((false, true)) && correctHeight && correctValue) && proveDlog(ownerKey) // todo: check is it ok to check no other conditions
-      } else {
-        sigmaProp(false)
-      }
+      sigmaProp(false)
     }
 
 }
