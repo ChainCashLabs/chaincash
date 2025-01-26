@@ -11,6 +11,9 @@
     //  - top up      (#1)
     //  - mint note (#2)
 
+    // we allow multiple reserves to be used in a transaction, for that, single context extension variable #0
+    // is encoding both action to take and output index in following way:
+
     val v = getVar[Byte](0).get
     val action = v / 10
     val index = v % 10
@@ -30,6 +33,15 @@
       // OUTPUTS:
       // #1 - receipt
       // #2 - buyback
+
+      // Context var used:
+      // #1
+      // #2
+      // #3
+      // #4
+      // #5
+      // #6 - note creation height
+      // #7 - note token proof
 
       val g: GroupElement = groupGenerator
 
@@ -109,7 +121,7 @@
         receiptOut.tokens(0) == noteInput.tokens(0) &&
         receiptOut.R4[AvlTree].get == history  &&
         receiptOut.R5[Long].get == position    &&
-        receiptOut.R6[Int].get >= HEIGHT - 20  &&  // 20 blocks for inclusion
+        receiptOut.R6[Int].get >= HEIGHT - 10  &&  // 10 blocks for inclusion
         receiptOut.R6[Int].get <= HEIGHT &&
         receiptOut.R7[GroupElement].get == ownerKey
 
@@ -120,13 +132,46 @@
         true
       }
 
-      sigmaProp(selfPreserved && properOracle && redeemCorrect && properSignature && properReceipt && positionCorrect)
+      // check note creation
+      val creationHeight = getVar[Long](6).get
+      val tokenProof = getVar[Coll[Byte]](7).get
+      val tokensTree = SELF.R5[AvlTree].get
+
+      val redemptionTimeCorrect = (HEIGHT - creationHeight > 7200) && // 10 days
+                                   tokensTree.get(noteTokenId, tokenProof).get == longToByteArray(creationHeight)
+
+      sigmaProp(selfPreserved && properOracle && redeemCorrect && properSignature && properReceipt &&
+                    positionCorrect && redemptionTimeCorrect)
     } else if (action == 1) {
       // top up
+      // anyone can add, so we have 1 ERG minimum to add to avoid spam
       sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added
     } else if (action == 2) {
-      // issue a note
-      sigmaProp(selfPreserved)
+      // mint a note
+
+      val noteTokensTreeIn = SELF.R5[AvlTree].get
+
+      val noteTokensTreeOut = selfOut.R5[AvlTree].get
+
+      val noteOut = OUTPUTS(index + 1) // note output is next after reserve
+
+      val noteToken = noteOut.tokens(0)
+
+      val noteTokenId = noteToken._1
+      val noteTokenAmount = noteToken._2
+
+      val height = getVar[Long](1).get
+
+      val heightCorrect = height >= HEIGHT - 10  &&  // 10 blocks for inclusion
+                          height <= HEIGHT
+
+      val proof = getVar[Coll[Byte]](2).get
+      val treeCorrect = noteTokensTreeIn.insert(Coll((noteTokenId, longToByteArray(height))), proof).get == noteTokensTreeOut
+
+      // todo: check note script ? check that all the tokens locked in the not output? check that note history is empty?
+      // todo: or such checks can be done offchain only ?
+
+      sigmaProp(proveDlog(ownerKey) && selfPreserved && heightCorrect && treeCorrect)
     } else {
       sigmaProp(false)
     }

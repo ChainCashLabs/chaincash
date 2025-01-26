@@ -12,6 +12,7 @@ import org.scalatest.{Matchers, PropSpec}
 import org.scalatestplus.scalacheck.ScalaCheckDrivenPropertyChecks
 import scorex.crypto.hash.Blake2b256
 import scorex.util.encode.{Base16, Base64}
+import scorex.util.idToBytes
 import sigmastate.AvlTreeFlags
 import sigmastate.basics.DLogProtocol.ProveDlog
 import sigmastate.eval._
@@ -226,15 +227,23 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
       val msg: Array[Byte] = positionBytes ++ Longs.toByteArray(noteValue) ++ Base16.decode(noteTokenId).get
       val sig = SigUtils.sign(msg, holderSecret)
 
-      val plasmaMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, chainCashPlasmaParameters)
+      val sigMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, chainCashPlasmaParameters)
       val sigBytes = GroupElementSerializer.toBytes(sig._1) ++ sig._2.toByteArray
       val keyBytes = positionBytes ++ reserveNFTBytes
-      val insertRes = plasmaMap.insert(keyBytes -> sigBytes)
+      val insertRes = sigMap.insert(keyBytes -> sigBytes)
       val _ = insertRes.proof
-      val historyTree = plasmaMap.ergoValue.getValue
-
-      val lookupRes = plasmaMap.lookUp(keyBytes)
+      val historyTree = sigMap.ergoValue.getValue
+      val lookupRes = sigMap.lookUp(keyBytes)
       val lookupProof = lookupRes.proof
+
+      val noteCreationHeight = ctx.getHeight - 7201
+      val noteTokensMap = new PlasmaMap[Array[Byte], Array[Byte]](AvlTreeFlags.InsertOnly, PlasmaParameters(32, None))
+      val noteIdBytes = Base16.decode(noteTokenId).get
+      val noteHeightBytes = Longs.toByteArray(noteCreationHeight)
+      noteTokensMap.insert(noteIdBytes -> noteHeightBytes)
+      val noteTokensTree = noteTokensMap.ergoValue.getValue
+      val noteHeightLookupRes = noteTokensMap.lookUp(noteIdBytes)
+      val noteHeightLookupProof = noteHeightLookupRes.proof
 
       val noteInput =
         ctx
@@ -256,7 +265,7 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
           .outBoxBuilder
           .value(minValue)
           .tokens(new ErgoToken(reserveNFTBytes, 1))
-          .registers(ErgoValue.of(holderPk))
+          .registers(ErgoValue.of(holderPk), ErgoValue.of(noteTokensTree))
           .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.reserveContract))
           .build()
           .convertToInputWith(fakeTxId2, fakeIndex)
@@ -265,7 +274,9 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
             new ContextVar(1, ErgoValue.of(lookupProof.bytes)),
             new ContextVar(2, ErgoValue.of(Longs.toByteArray(noteValue))),
             new ContextVar(3, ErgoValue.of(position)),
-            new ContextVar(4, ErgoValue.of(false))
+            new ContextVar(4, ErgoValue.of(false)),
+            new ContextVar(6, ErgoValue.of(noteCreationHeight.toLong)),
+            new ContextVar(7, ErgoValue.of(noteHeightLookupProof.bytes))
           )
 
       val buyBackInput =
@@ -840,67 +851,6 @@ class ChainCashSpec extends PropSpec with Matchers with ScalaCheckDrivenProperty
         )
       }
     }
-  }
-
-  property("refund - init") {
-    createMockedErgoClient(MockData(Nil, Nil)).execute { implicit ctx: BlockchainContext =>
-      val reserveInput =
-        ctx
-          .newTxBuilder()
-          .outBoxBuilder
-          .value(minValue)
-          .tokens(new ErgoToken(reserveNFTBytes, 1))
-          .registers(ErgoValue.of(holderPk))
-          .contract(ctx.compileContract(ConstantsBuilder.empty(), Constants.reserveContract))
-          .build()
-          .convertToInputWith(fakeTxId2, fakeIndex)
-          .withContextVars(
-            new ContextVar(0, ErgoValue.of(20: Byte))
-          )
-
-      val fundingBox =
-        ctx
-          .newTxBuilder()
-          .outBoxBuilder
-          .value(minValue)
-          .contract(ctx.compileContract(ConstantsBuilder.empty(), fakeScript))
-          .build()
-          .convertToInputWith(fakeTxId1, fakeIndex)
-
-      val reserveOutput = createOut(
-        Constants.reserveContract,
-        minValue,
-        registers = Array(ErgoValue.of(holderPk), ErgoValue.of(ctx.getHeight - 2)),
-        tokens = Array(new ErgoToken(reserveNFT, 1))
-      )
-
-      val inputs = Array[InputBox](fundingBox, reserveInput)
-      val dataInputs = Array[InputBox]()
-      val outputs = Array[OutBoxImpl](reserveOutput)
-
-      createTx(
-        inputs,
-        dataInputs,
-        outputs,
-        fee = None ,
-        changeAddress,
-        Array[String](holderSecret.toString()),
-        false
-      )
-    }
-  }
-
-  property("refund - cancel") {
-    // todo:
-  }
-
-
-  property("refund - done") {
-    // todo:
-  }
-
-  property("top-up") {
-    // todo:
   }
 
 }
