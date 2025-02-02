@@ -132,17 +132,15 @@
         true
       }
 
-      val redemptionTimeCorrect = if(position == 0) {
-        // check note creation
-        val creationHeight = getVar[Long](6).get
-        val tokenProof = getVar[Coll[Byte]](7).get
-        val tokensTree = SELF.R5[AvlTree].get
+      val noteRegistryInputIdx = getVar[Int](6).get
+      val noteRegistryInput = CONTEXT.dataInputs(noteRegistryInputIdx)
+      val registrationTokenCorrect = noteRegistryInput.tokens(0)._1 == fromBase16("") // todo: set value
+      val registrationBoxCorrect = noteRegistryInput.R4[Coll[Byte]].get == noteTokenId
+      val creationHeight = noteRegistryInput.R5[Int].get
 
-        (HEIGHT - creationHeight > 7200) && // 10 days
-                                   tokensTree.get(noteTokenId, tokenProof).get == longToByteArray(creationHeight)
-      } else {
-        true
-      }
+      val redemptionTimeCorrect = (HEIGHT - creationHeight > 7200) && // 10 days
+                                     registrationTokenCorrect &&
+                                     registrationBoxCorrect
 
       sigmaProp(selfPreserved && properOracle && redeemCorrect && properSignature && properReceipt &&
                     positionCorrect && redemptionTimeCorrect)
@@ -150,34 +148,6 @@
       // top up
       // anyone can add, so we have 1 ERG minimum to add to avoid spam
       sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added
-    } else if (action == 2) {
-      // mint a note
-
-      val noteTokensTreeIn = SELF.R5[AvlTree].get
-
-      val noteTokensTreeOut = selfOut.R5[AvlTree].get
-
-      val noteOut = OUTPUTS(index + 1) // note output is next after reserve
-
-      val noteToken = noteOut.tokens(0)
-
-      val noteTokenId = noteToken._1
-      val noteTokenAmount = noteToken._2
-
-      val height = getVar[Long](1).get
-
-      val heightCorrect = height >= HEIGHT - 10  &&  // 10 blocks for inclusion
-                          height <= HEIGHT
-
-      val proof = getVar[Coll[Byte]](2).get
-      val treeCorrect = noteTokensTreeIn.insert(Coll((noteTokenId, longToByteArray(height))), proof).get == noteTokensTreeOut
-
-      val positionCorrect = noteOut.R6[Long].get == 0L
-
-      // todo: check note script ? check that all the tokens locked in the not output? check that note history is empty?
-      // todo: or such checks can be done offchain only ?
-
-      sigmaProp(proveDlog(ownerKey) && selfPreserved && heightCorrect && treeCorrect && positionCorrect)
     } else {
       sigmaProp(false)
     }
