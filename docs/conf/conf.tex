@@ -124,7 +124,9 @@ As an example, consider a small gold mining cooperative in Ghana issuing a note 
 Agent's note quality estimation predicate $P_i(n)$ is considering collaterals and trust of previous spenders. Different agents may have different 
 collateralization estimation algorithms~(by analyzing history of the single note $n$, or e.g. all the notes issued by previous signers of $n$, other options are also possible), different whitelists, blacklists, or trust scores assigned to previous spenders of the note $n$ etc. So in general case payment sender first need to consult with the receiver on whether the payment~(consisting of one or multiple notes) can be accepted. However, in the real world likely there will be standard predicates, thus payment receiver~(e.g. an online shop) may publish its predicate (or just predicate id) online, and then a payment can be done without interaction needed to check shop's acceptance policy.
 
-From the description above, it is seen that 
+From desiderata above, we may describe the protocol with three basic entities, a reserve~(an agent is associated with its
+reserve, possibly empty), a note, and a receipt. Possible actions involving those entities are deposit into reserve, note redemption,
+ receipt redemption, and note spending.
 
 \section{Implementation}
 \label{sec-impl}
@@ -135,7 +137,7 @@ We propose to implement \cc{} monetary system on top of a public blockchain as:
   \item{} blockchain provides an instant solution for public-key infrastructure
   \item{} public blockchain allows for a global ledger solution with minimal trust assumptions~\cite{kya}
   \item{} as a consequence, global public ledger allows for simple analysis of notes in existence
-  \item{} smart contracts minimize trust issues in payment execution and redemption. If native blockchain currency and assets on top of it~(such as algorithmic stablecoins) used in reserves, trust issues in redemption could be eliminated at all. If tokenized real-world commodities and fiat currencies~(e.g. USDT) are used in reserves, redemption could not be completely trustless~(as smart contracts do not have power off the chain), but at least there is transparent accounting in on-chain part of redemption
+  \item{} smart contracts minimize trust issues in payment execution and redemption. If native blockchain currency and assets on top of it~(such as algorithmic stablecoins) used in reserves, trust issues in redemption could be eliminated at all. If tokenized real-world commodities and fiat reserves backed stablecoins~(such as USDT) are used in reserves, redemption could not be completely trustless~(as smart contracts do not have power off the chain), but at least there is transparent accounting in on-chain part of redemption
 \end{itemize}
 
 We use Ergo as a Proof-of-Work blockchain to implement \cc{}, as it is built on minimal trust assumptions~\cite{kya}, and UTXO transactional model as well as AVL+ trees support are making notes implementation feasible.
