@@ -140,8 +140,9 @@ We propose to implement \cc{} monetary system on top of a public blockchain as:
   \item{} smart contracts minimize trust issues in payment execution and redemption. If native blockchain currency and assets on top of it~(such as algorithmic stablecoins) used in reserves, trust issues in redemption could be eliminated at all. If tokenized real-world commodities and fiat reserves backed stablecoins~(such as USDT) are used in reserves, redemption could not be completely trustless~(as smart contracts do not have power off the chain), but at least there is transparent accounting in on-chain part of redemption
 \end{itemize}
 
-We use Ergo as a Proof-of-Work blockchain to implement \cc{}, as it is built on minimal trust assumptions~\cite{kya}, and UTXO transactional model as well as AVL+ trees support are making notes implementation feasible.
-
+For efficient implementation, it is natural to use a blockchain with extended UTXO transactional model~\cite{chakravarty2020extended}, to have one reserve per unspent transaction output~(UTXO), to
+avoid having global state maintained on the blockchain, and also notes progression is well described by underlying UTXOs progression. Another feature which is critical for feasible implementation is
+possibility to manage signatures chain efficiently. We use Ergo as a blockchain to implement \cc{} as UTXO transactional model as well as AVL+ trees support are making notes and reserves implementation feasible.
 
 For blockchain-based \cc{} implementation, we consider implementation of the following two main parts:
 
