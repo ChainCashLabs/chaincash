@@ -4,15 +4,12 @@
     // Data:
     //  - token #0 - identifying singleton token
     //  - R4 - signing key (as a group element)
-    //  - R5 - refund init height (None if not set)
-    //  - R6 - amount to refund (None if not set)
+    //  - R5 - trees of all the note tokens issued TODO: check preservation in actions
     //
     // Actions:
     //  - redeem note (#0)
     //  - top up      (#1)
-    //  - init refund (#2)
-    //  - cancel refund (#3)
-    //  - complete refund (#4)
+    //  - mint note (#2)
 
     val v = getVar[Byte](0).get
     val action = v / 10
@@ -20,6 +17,8 @@
 
     val ownerKey = SELF.R4[GroupElement].get // reserve owner's key, used in notes and unlock/lock/refund actions
     val selfOut = OUTPUTS(index)
+
+    // common checks for all the paths (not incl. ERG value check)
     val selfPreserved =
             selfOut.propositionBytes == SELF.propositionBytes &&
             selfOut.tokens == SELF.tokens &&
@@ -125,28 +124,11 @@
     } else if (action == 1) {
       // top up
       sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added
+    } else if (action == 2) {
+      // issue a note
+      sigmaProp(selfPreserved)
     } else {
-      // todo: write tests for refund paths, document them
-      if (action == 2) {
-        // init refund
-        val correctHeight = selfOut.R5[Int].get >= HEIGHT - 5
-        val correctValue = selfOut.value >= SELF.value
-        sigmaProp(selfPreserved && correctHeight && correctValue) && proveDlog(ownerKey)
-      } else if (action == 3) {
-        // cancel refund
-        val correctHeight = !(selfOut.R5[Int].isDefined)
-        val correctValue = selfOut.value >= SELF.value
-        sigmaProp(selfPreserved && correctHeight && correctValue) && proveDlog(ownerKey)
-      } else if (action == 4) {
-        // complete refund
-        val refundNotificationPeriod = 14400 // 20 days
-        val correctHeight = (SELF.R5[Int].get + refundNotificationPeriod) <= HEIGHT
-        val refundLimit = SELF.R6[Long].get
-        val correctValue = SELF.value - selfOut.value <= refundLimit
-        sigmaProp(selfPreserved && correctHeight && correctValue) && proveDlog(ownerKey) // todo: check is it ok to check no other conditions
-      } else {
-        sigmaProp(false)
-      }
+      sigmaProp(false)
     }
 
 }
