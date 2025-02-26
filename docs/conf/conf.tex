@@ -71,9 +71,10 @@ Global Digital Peer-to-Peer Environment}
 
 \begin{abstract}
 In this paper we introduce a blockchain-based protocol to create money in self-sovereign way via trust or collateral. The
-protocol allows for elastic money creation in peer-to-peer environment. Acceptance of notes created or signed
-by other peers made an individual choice. Similarly to spender-signed currencies, every spender is signing and backing a
-note. Every signature is associated with a reserve, which can be made of any blockchain token, or be empty. A note may
+protocol allows for elastic money creation in peer-to-peer environment, where there is no party which can enforce for everyone
+rules for money creation and acceptance. Thus acceptance of notes created or signed
+by other peers made an individual choice. Similarly to spender-signed currencies, every spender is signing and backing every
+note he spends. Every signature is associated with a reserve, which can be made of any blockchain token, or be empty. A note may
 be redeemed against any reserve of its signers, and then re-redeemed against a reserve associated with earlier signature.
 
 We have implemented our proposal in software in form of a payment server, supporting flexible rules for notes acceptance,
@@ -91,18 +92,17 @@ monetary systems, such as LETS~(local exchange trading systems~\cite{williams199
 currencies~(such as famous Woergl demurrage-based local currency back in 1930s~\cite{unterguggenbercer1934end}), and so on.
 
 Control in traditional fiat monetary systems is possessed by big players~(with rich getting richer effect) creating
-money in non-transparent ways~(especially in offshore circuits) without reasonable limits, on the other side,
+money in non-transparent ways~(especially in offshore circuits), on the other side,
 fiat monetary systems (in opposite to commodity money used before fiat, as well as alternative monetary systems) have
-best supply elasticity. Cryptocurrencies~(and, usually, other tokens on top of public blockchains) have strict and
-publicly known emission schedule set in an algorithm for computers, and that is making them perfect digital commodity assets,
+best supply elasticity. Proof-of-work cryptocurrencies~(and, sometimes, other tokens on top of public blockchains) have strict and
+publicly known emission schedule set in an algorithm for computers, which is making them perfect digital commodity assets,
 on the other hand, supply is disconnected from economic activity and so not elastic. Local currencies usually considered
 more fair in segniorage distribution than fiat currencies, they are often successfully boosting local economies, but,
-in opposite to fiat and crypto-currencies, they are not global and usually are dying without active supporters.
-Elasticity of supply is also limited simply due to entry barriers for external actors.
+in opposite to fiat and crypto-currencies, they are not global and rarely surviving in the long term due to loss of active supporters.
+They are also hard to get into for external actors.
 
 In this work, we propose a new global peer-to-peer network based money system, with decentralized issuance, individual acceptance rules and elastic supply, called \cc{}.
-A digital banknote in \cc{} can be created by any party and collectively backed by the means of collateral and trust. \cc{} acts on top of Ergo blockchain~(possibly, other public blockchains
-as well, however, for efficient implementation there is requirement for primitives which can be found in Ergo only at the moment, to the best of our knowledge). Thus collateral for a \cc{} comes from reserves network peers may have, and on spending a note, a peer is attaching its
+A digital banknote in \cc{} can be created by any party and collectively backed by the means of collateral and trust. Collateral for a \cc{} note comes from reserves network peers may have, and on spending a note, a peer is attaching its
 reserve to collective backing. At the same time, a newly issued note could be accepted by a peer without any backing provided, for example, if such a note is issued by a friend or a trusted charity. Every peer in the system is having own individual rules
 for accepting notes~(widely accepted standards may exist at the same time), which provides basis for elasticity of supply. We are providing details in the next section.
 
