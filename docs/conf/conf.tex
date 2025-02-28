@@ -109,7 +109,7 @@ for accepting notes~(widely accepted standards may exist at the same time), whic
 The paper is organized as follows. In Section~\ref{sec-design} we describe design of the system. Section~\ref{sec-impl} provides
 details on implementation. In Section~\ref{sec-apps} we outline possible applications on top of \cc{}. In Section~\ref{sec-comparison} comparison
  with other monetary systems and blockchain protocols provided. It is possible to witdraw funds from a reserve by simply issuing a note, then spending with a signature
-associated with the reserve, and then redeeming the note. To make 
+associated with the reserve, and then redeeming the note.
 
 \section{Design}
 \label{sec-design}
@@ -135,10 +135,9 @@ reserve, possibly empty), a note, and a receipt. Possible actions involving thos
 We propose to implement \cc{} monetary system on top of a public blockchain as:
 
 \begin{itemize}
-  \item{} blockchain provides an instant solution for public-key infrastructure
-  \item{} public blockchain allows for a global ledger solution with minimal trust assumptions~\cite{kya}
-  \item{} as a consequence, global public ledger allows for simple analysis of notes in existence
-  \item{} smart contracts minimize trust issues in payment execution and redemption. If native blockchain currency and assets on top of it~(such as algorithmic stablecoins) used in reserves, trust issues in redemption could be eliminated at all. If tokenized real-world commodities and fiat reserves backed stablecoins~(such as USDT) are used in reserves, redemption could not be completely trustless~(as smart contracts do not have power off the chain), but at least there is transparent accounting in on-chain part of redemption
+  \item{} a blockchain provides an instant solution for public-key infrastructure
+  \item{} public blockchain allows for a global ledger solution with minimal trust assumptions~\cite{kya}. As a consequence, global public ledger allows for simple analysis of notes in existence.
+  \item{} smart contracts minimize trust issues in payment execution and redemption. If native blockchain currency and trustless derivatives on top of it~(such as algorithmic stablecoins) are used in reserves, trust issues in redemption could be eliminated at all. If tokenized real-world commodities and fiat backed stablecoins~(such as USDT) are used in reserves, redemption could not be completely trustless~(as smart contracts do not have power off the chain), but at least there is transparent accounting in on-chain part of redemption
 \end{itemize}
 
 For efficient implementation, it is natural to use a blockchain with extended UTXO transactional model~\cite{chakravarty2020extended}, to have one reserve per unspent transaction output~(UTXO), to
@@ -155,19 +154,22 @@ For blockchain-based \cc{} implementation, we consider implementation of the fol
   where notes are making progress off-chain). This software is implementing $a_i$ agent's functionality from the Section~\ref{sec-design},
   including note quality estimation predicate $P_i(n)$. For that, the client may potentially track all the reserves and notes on the blockchain.
   Client's $P_i(n)$ may be configured via whitelists, blacklists, collateralization requirements provided in a configuration file.
-  \cc{} Server can be seen as a self-sovereign digital bank in peer-to-peer free banking system, issuing own private money using common unit-of-account. This differs from \"be your own bank\" notion used in Bitcoin community, where \"own bank\" means verifying common ledger only.
+  \cc{} Server can be seen as a self-sovereign digital bank in peer-to-peer free banking system, issuing own private money using common unit-of-account.
 \end{itemize}
 
-On-chain contracts are available at~\cite{contracts}. Three contracts can be found there, namely, reserve, note and receipt contracts. Reserve contract locks ERG native tokens on top of Ergo blockchain and allow to redeem native or custom tokens when a note is presented. Note contract ensures that the note has proper history, that is, on every spending a valid signature of corresponding reserve owner is added. It also and allows for a note to be split into two parts~(payment and change), and allows for note redemption.
-On redemption, where both reserve and note contracts are involved, an output with receipt contract is created, which contains history of ownership copied from the note input, as well as position of reserve redeemed in ownership chain and note's value. With receipt it is possible then to redeem againt a re~(reserve contract allows for that).
+Three on-chain contracts are implemented, namely, reserve, note and receipt contracts. Reserve contract locks ERG native tokens on top of Ergo blockchain and allow to redeem native or custom tokens when a note is presented. Note contract ensures that a note~(UTXO) under its control has proper history, that is, on every spending a valid signature of corresponding reserve owner is added. It is also allowing for a note to be split into two parts~(payment and change), as well as note redemption.
+On redemption, where both reserve and note contracts are involved, an output with receipt contract is created, which contains history of ownership copied from the note input, as well as position of reserve redeemed in ownership chain and note's value. With receipt it is possible then to redeem againt an earlier reserve~(reserve contract allows for that).
 
-Reference \cc{} Server implementation (in Rust programming language) can be found at~\cite{server}.
+% On-chain contracts are available at~\cite{contracts}.
+% Reference \cc{} Server implementation (in Rust programming language) can be found at~\cite{server}.
 
 Basic contracts implementation described is good for starters, but can be extended in many ways.  We note that it is possible
 to add new features without need for the whole network to update. New features, such as new reserve and note contracts,
 can be proposed in form of CCIPs~(ChainCash Improvement Proposals). ChainCash
 Server may support new features, in particular, new forms of notes. If client is asked to accept a note with unknown
 contract, or a note backed by unknown contract, it is just refusing to accept the note.
+
+On-chain contracts and reference server implementations are open-sourced and available under public domain license.
 
 \section{Applications}
 \label{sec-apps}
