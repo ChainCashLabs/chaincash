@@ -179,23 +179,34 @@ In particular, we provide details \knote{finish}
 
 \subsection{Local Exchange Trading System}
 
-Local exchange trading system (LETS) is a form of non-collateralized community currency, where any member of a community
+Local exchange trading system (LETS)~\cite{williams1996new} is a form of non-collateralized community currency, where any member of a community
 can issue an IOC (I Owe Community) note and pay with it within the community.
 To implement a local exchange trading system on top of \cc{}, every LETS member needs to whitelist everyone else, so
-they will accept notes of each other regardless reserves backing the notes, and thus LETS can create money within the community (the LETS circle) with no limits. On the other hand, unlike traditional LETS, notes can circulate outside the LETS circle easily as well. Implementations may vary from LETS members whitelisting unconditionally only notes issued by other members to members whitelisting notes ever signed by LETS members.
+they will accept notes of each other regardless reserves backing the notes, and thus LETS can create money within the community (the LETS circle) with no limits~(or with limits the community agreed on). On the other hand, unlike traditional LETS, notes can circulate outside the LETS circle easily, if there are actors willing to accept notes from community. Implementations may vary from LETS members whitelisting unconditionally only notes issued by other members to members whitelisting notes ever signed by LETS members.
 
 
 \subsection{Local Currencies}
 
-A local or even national government may issue notes and enforce their acceptance within its jurisdiction by enforcing economic agents to accept notes issued or spend by the government. As well as in a LETS implementation, enforced acceptance rules may vary. 
+A local or even national government may issue notes and enforce their acceptance within its jurisdiction by enforcing economic agents to accept notes issued or spend by the government. As well as in a LETS implementation, enforced acceptance rules may vary, for example, there
+could be a limit for amount of money a government may create.
 
 Often local currencies are introducing redemption fee, to promote local usage. In \cc{}, similar goals can be achieved via modifying the reserve contract in a way that non-locals need to pay redemption fee while locals need not, alternatively, the note contract could be modified in a way that spending to non-local addresses incurs a fee. Local currencies are often associated with demurrage, after well-known Woergl experiment~\cite{unterguggenbercer1934end}. Demmurage could be implemented by modifying note contract. However, modifying note contract makes notes locked by it less appealing to others, but that is common for local currencies already.
 
 \subsection{Multilateral Trade-Credit Set-off}
 
-Multilateral Trade-Credit Set-off~\cite{mtcs} is a technique which allows invoices in closed loops to be cleared against one another.
+Multilateral Trade-Credit Set-off~\cite{mtcs} \knote{check/fix ref} is a technique which allows invoices in closed loops to be cleared against one another.
 In \cc{}, it is possible to clear mutual debts by just burning atomically tokens backed by counter-partis in a single
 transaction. This will allow them to issue more notes after.
+
+MTCS can be used along with LETS for multiplying economic activity from charity. One of possible options is as follows.
+Charity funds can be put in a reserve associated with a public key *A*. Then a local trade exchange system for a community
+in need is formed, and it is not including *A*. MTCS takes place regularly, to reduce total amount of debt created in the
+community. Only after enough time~(and maybe some additional checks) a note can be accepted by A, then A is sending it back to
+a LETS member which sent the note to A, and the note can be redeemed against the reserve by the LETS member. Thus
+charity funds are used to cover trade disbalance in the community only, which, in many cases, could be much more efficient
+than other options of helping communities in need.
+
+
 
 \section{Comparison With Other Money Systems}
 \label{sec-comparison}
