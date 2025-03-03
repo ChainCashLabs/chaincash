@@ -107,9 +107,8 @@ reserve to collective backing. At the same time, a newly issued note could be ac
 for accepting notes~(widely accepted standards may exist at the same time), which provides basis for elasticity of supply. We are providing details in the next section.
 
 The paper is organized as follows. In Section~\ref{sec-design} we describe design of the system. Section~\ref{sec-impl} provides
-details on implementation. In Section~\ref{sec-apps} we outline possible applications on top of \cc{}. In Section~\ref{sec-comparison} comparison
- with other monetary systems and blockchain protocols provided. It is possible to witdraw funds from a reserve by simply issuing a note, then spending with a signature
-associated with the reserve, and then redeeming the note.
+details on implementation. In Section~\ref{sec-apps} we outline possible applications on top of \cc{}. In Section~\ref{sec-adv} we provide initial analysis
+of advantages and drawbacks of the proposal.
 
 \section{Design}
 \label{sec-design}
@@ -127,7 +126,8 @@ collateralization estimation algorithms~(by analyzing history of the single note
 
 From desiderata above, we may describe the protocol with three basic entities, a reserve~(an agent is associated with its
 reserve, possibly empty), a note, and a receipt. Possible actions involving those entities are deposit into reserve, note redemption,
- receipt redemption, and note spending.
+ receipt redemption, and note spending. It is possible to witdraw funds from a reserve by simply issuing a note, then spending with a signature
+associated with the reserve, and then redeeming the note.
 
 \section{Implementation}
 \label{sec-impl}
@@ -207,11 +207,8 @@ charity funds are used to cover trade disbalance in the community only, which, i
 than other options of helping communities in need.
 
 
-
-\section{Comparison With Other Money Systems}
-\label{sec-comparison}
-
 \section{\cc{} Advantages and Drawbacks}
+\label{sec-adv}
 
 In this section, we are providing some thoughts on possible advantages and drawbacks of \cc{}. Note that practice can show
 completely different picture from what we are providing here~(as often happens).
