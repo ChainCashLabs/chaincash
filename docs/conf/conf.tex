@@ -179,8 +179,9 @@ In particular, we provide details on how to implement popular community currency
  system~\cite{williams1996new}, and then a timebank~\cite{mcquaid2004review} can be implemented as well, by using time
 as unit of account. Then we show how a local currency can be created. We note that more currency systems can be
 implemented, for example, as \cc{} is deriving from spender-signed currency idea, spender signed currencies, such as
-iWat~\cite{saito2003peer} and its variations~\cite{saito2005wot, saito2005multiplication, saito2006reduction} can
-trivially be built on top of it.
+iWat~\cite{saito2003peer} and its variations~\cite{saito2005wot,saito2005multiplication,saito2006reduction} can
+trivially be built on top of it. For efficiency of \cc{}, it is important to reduce the aggregate indebtedness in the system,
+thus we describe how multilateral trade-credit set-off can be done in Section~\ref{mtcs}.
 
 \subsection{Local Exchange Trading System}
 
@@ -198,6 +199,7 @@ could be a limit for amount of money a government may create.
 Often local currencies are introducing redemption fee, to promote local usage. In \cc{}, similar goals can be achieved via modifying the reserve contract in a way that non-locals need to pay redemption fee while locals need not, alternatively, the note contract could be modified in a way that spending to non-local addresses incurs a fee. Local currencies are often associated with demurrage, after well-known Woergl experiment~\cite{unterguggenbercer1934end}. Demmurage could be implemented by modifying note contract. However, modifying note contract makes notes locked by it less appealing to others, but that is common for local currencies already.
 
 \subsection{Multilateral Trade-Credit Set-off}
+\label{mtcs}
 
 Multilateral Trade-Credit Set-off~\cite{bottazzi2024multilateral} is a technique which allows invoices in closed loops to be cleared against one another.
 In \cc{}, it is possible to clear mutual debts by just burning atomically tokens backed by counter-parties in a single
