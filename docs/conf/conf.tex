@@ -174,11 +174,11 @@ On-chain contracts and reference server implementations are open-sourced and ava
 \section{Applications}
 \label{sec-apps}
 
-In this Section, we show how \cc{} can be used as a foundation for other monetary systems, by providing some examples.
+In this section, we show how \cc{} can be used as a foundation for other monetary systems, by providing some examples.
 In particular, we provide details on how to implement popular community currency systems, such as a local exchange trading
  system~\cite{williams1996new}, and then a timebank~\cite{mcquaid2004review} can be implemented as well, by using time
-as unit of account. Then we show how a local currency can be created. We note that more currency systems can be
-implemented, for example, as \cc{} is deriving from spender-signed currency idea, spender signed currencies, such as
+as unit of account in a local exchange trading system. Then we show how a local currency can be created. We note that more currency systems can be
+implemented, for example, as \cc{} is deriving from spender-signed currency concept, such currencies, for example,
 iWat~\cite{saito2003peer} and its variations~\cite{saito2005wot,saito2005multiplication,saito2006reduction} can
 trivially be built on top of it. For efficiency of \cc{}, it is important to reduce the aggregate indebtedness in the system,
 thus we describe how multilateral trade-credit set-off can be done in Section~\ref{mtcs}.
@@ -196,13 +196,13 @@ they will accept notes of each other regardless reserves backing the notes, and 
 A local or even national government may issue notes and enforce their acceptance within its jurisdiction by enforcing economic agents to accept notes issued or spend by the government. As well as in a LETS implementation, enforced acceptance rules may vary, for example, there
 could be a limit for amount of money a government may create.
 
-Often local currencies are introducing redemption fee, to promote local usage. In \cc{}, similar goals can be achieved via modifying the reserve contract in a way that non-locals need to pay redemption fee while locals need not, alternatively, the note contract could be modified in a way that spending to non-local addresses incurs a fee. Local currencies are often associated with demurrage, after well-known Woergl experiment~\cite{unterguggenbercer1934end}. Demmurage could be implemented by modifying note contract. However, modifying note contract makes notes locked by it less appealing to others, but that is common for local currencies already.
+Often local currencies are introducing redemption fee, to promote local usage. In \cc{}, similar goals can be achieved via modifying the reserve contract in a way that non-locals need to pay redemption fee while locals need not, alternatively, the note contract could be modified in a way that spending to non-local addresses incurs a fee. Local currencies are often associated with demurrage, after well-known Woergl experiment~\cite{unterguggenbercer1934end}. Demmurage could be implemented by modifying note contract.
 
 \subsection{Multilateral Trade-Credit Set-off}
 \label{mtcs}
 
-Multilateral Trade-Credit Set-off~\cite{bottazzi2024multilateral} is a technique which allows invoices in closed loops to be cleared against one another.
-In \cc{}, it is possible to clear mutual debts by just burning atomically tokens backed by counter-parties in a single
+Multilateral Trade-Credit Set-off~\cite{bottazzi2024multilateral} (MTCS) is a technique which allows invoices in closed loops to be cleared against one another.
+In \cc{}, it is possible to clear mutual debts by just burning atomically notes backed by counter-parties in a single
 transaction. This will allow them to issue more notes after.
 
 MTCS can be used along with LETS for multiplying economic activity from charity. One of possible options is as follows.
@@ -225,19 +225,19 @@ At the moment of writing this paper, we can highlight following advantages:
 \begin{itemize}
   \item ChainCash is unique, to the best of our knowledge, framework, where trust and backing with collateral are
    seamlessly and transparently combined in money issuance.
-  \item unlike native cryptocurrrencies and algorithmic stablecoin, \cc{} provides elasticity of supply without enforcing
+  \item unlike native cryptocurrrencies and algorithmic stablecoins, \cc{} provides elasticity of supply without enforcing
   individual users to accept notes of lower quality - it is always up to users what to accept.
   \item as Section~\ref{sec-apps} shows, a variety of known monetary systems can be built on top of \cc{}. This possible
-  foundational nature of the proposed worth further research.
+  foundational nature of the proposal worth further research.
 \end{itemize}
 
 At the same time, at this moment the proposed design has following drawbacks:
 \begin{itemize}
   \item ChainCash notes are non-fungible, while they share the same unit-of-account, each note has unique backing. This prevents ChainCash usage
-  in many DeFi applications, such as liquidity pools, lending pools etc. We note that, similarly, DAI stablecoins issued against CDPs
-  (collateralized debt posistions) with different collateralization also should be priced differently. And like DAI is assigning the same price to
-  DAIs of different quality, there could be services on top of \cc{} combining notes of certain quality, buy e.g. exchanging them with service tokens
-  which then can be used in DeFi services.
+  in many DeFi applications, such as liquidity pools, existing lending pools etc. We note that, similarly, DAI~\cite{woltzenlogel2023stablecoin} stablecoins issued against CDPs
+  (collateralized debt posistions) with different level of collateralization also should be priced differently. And like a DAI protocol is assigning the same price to
+  DAIs of different quality, there could be index fund like services combining notes of certain quality, by e.g. providing index fund tokens
+  in exchange for such notes, and the tokens can be used then freely in DeFi services.
   \item There is no privacy in \cc{} payments now. This topic is fully left for further research.
 \end{itemize}
 
