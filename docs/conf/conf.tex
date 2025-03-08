@@ -78,8 +78,9 @@ note he spends. Every signature is associated with a reserve, which can be made 
 be redeemed against any reserve of its signers, and then re-redeemed against a reserve associated with earlier signature.
 
 We have implemented our proposal in software in form of a payment server, supporting flexible rules for notes acceptance,
-based on blacklist, whitelist, collateralization ratio. We have shown how to implement a local exchange trading system (LETS)
-and mutual credit clearing using our software.
+based on blacklist, whitelist, collateralization ratio. We have shown how to implement some known monetary systems, such as
+a local exchange trading system (LETS), and how to do mutual credit clearing by using proposed stack made of the on-chain protocol
+ and offchain software.
 \end{abstract}
 
 \section{Introduction}
@@ -92,14 +93,14 @@ monetary systems, such as LETS~(local exchange trading systems~\cite{williams199
 currencies~(such as famous Woergl demurrage-based local currency back in 1930s~\cite{unterguggenbercer1934end}), and so on.
 
 Control in traditional fiat monetary systems is possessed by big players~(with rich getting richer effect) creating
-money in non-transparent ways~(especially in offshore circuits), on the other side,
+money in non-transparent ways~(especially when done in offshore circuits), on the other side,
 fiat monetary systems (in opposite to commodity money used before fiat, as well as alternative monetary systems) have
 best supply elasticity. Proof-of-work cryptocurrencies~(and, sometimes, other tokens on top of public blockchains) have strict and
 publicly known emission schedule set in an algorithm for computers, which is making them perfect digital commodity assets,
 on the other hand, supply is disconnected from economic activity and so not elastic. Local currencies usually considered
 more fair in segniorage distribution than fiat currencies, they are often successfully boosting local economies, but,
 in opposite to fiat and crypto-currencies, they are not global and rarely surviving in the long term due to loss of active supporters.
-They are also hard to get into for external actors.
+They are also usually hard to get into for external actors.
 
 In this work, we propose a new global peer-to-peer network based money system, with decentralized issuance, individual acceptance rules and elastic supply, called \cc{}.
 A digital banknote in \cc{} can be created by any party and collectively backed by the means of collateral and trust. Collateral for a \cc{} note comes from reserves network peers may have, and on spending a note, a peer is attaching its
@@ -141,7 +142,7 @@ We propose to implement \cc{} monetary system on top of a public blockchain as:
 \end{itemize}
 
 For efficient implementation, it is natural to use a blockchain with extended UTXO transactional model~\cite{chakravarty2020extended}, to have one reserve per unspent transaction output~(UTXO), to
-avoid having global state maintained on the blockchain, and also notes progression is well described by underlying UTXOs progression. Another feature which is critical for feasible implementation is
+avoid having global state maintained on the blockchain, and notes progression is well described by underlying UTXOs progression also. Another feature which is critical for feasible implementation is
 possibility to manage signatures chain efficiently. We use Ergo as a blockchain to implement \cc{} as UTXO transactional model as well as AVL+ trees support are making notes and reserves implementation feasible.
 
 For blockchain-based \cc{} implementation, we consider implementation of the following two main parts:
@@ -169,7 +170,7 @@ can be proposed in form of CCIPs~(ChainCash Improvement Proposals). ChainCash
 Server may support new features, in particular, new forms of notes. If client is asked to accept a note with unknown
 contract, or a note backed by unknown contract, it is just refusing to accept the note.
 
-On-chain contracts and reference server implementations are open-sourced and available under public domain license.
+On-chain contracts and reference server implementations are open-sourced and available under public domain license~\footnote[1]{A link to source code will be provided in a final version of the paper}.
 
 \section{Applications}
 \label{sec-apps}
