@@ -38,7 +38,7 @@ without prior interaction.
 ## Whitepaper And Other Materials
 
 High-level description of ChainCash protocol and its implementation can be found 
-in the [whitepaper](https://github.com/ChainCashLabs/chaincash/blob/master/docs/whitepaper/chaincash.pdf). 
+in the [whitepaper](https://github.com/ChainCashLabs/chaincash/blob/master/docs/conf/conf.pdf). 
 
 More introductory materials: 
 
@@ -53,7 +53,7 @@ Initial version of [design document](docs/server.md) is also available.
 
 ## Contents Of This Repository
 
-* Whitepaper - https://github.com/kushti/chaincash/blob/master/paper/chaincash.pdf
+* Whitepaper - https://github.com/ChainCashLabs/chaincash/blob/master/docs/conf/conf.pdf
 High-level description of ChainCash protocol and its implementation
 
 * Modelling - https://github.com/kushti/chaincash/tree/master/src/main/scala/chaincash/model
@@ -66,6 +66,11 @@ estimation options.
 * Offchain part - https://github.com/kushti/chaincash/tree/master/src/main/scala/chaincash/offchain - on-chain data tracking,
   persistence, transaction builders
 
+## Communications
+
+Join discussion groups for developers and users:
+
+* Telegram: [https://t.me/chaincashtalks](https://t.me/chaincashtalks)
 
 ## TODO
 
@@ -75,5 +80,3 @@ estimation options.
 * support other tokens in reserves, e.g. SigUSD
 * efficient persistence for own notes (currently, all the notes in the system are iterated over)
 * check ERG preservation in note contracts
-
-and then, server with API for clients and some front-end on top of it
