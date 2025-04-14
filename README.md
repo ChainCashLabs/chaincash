@@ -44,6 +44,7 @@ More introductory materials:
 
 * [The World Needs For More Collateral](https://www.ergoforum.org/t/the-world-needs-for-more-collateral/4451) - forum thread
 * [Video presentation from Ergo Summit](https://www.youtube.com/watch?v=NxIlIpO6ZVI)
+* [Video: ChainCash, part two](https://www.youtube.com/watch?v=fk8ZFvNFDYc)
 
 ## ChainCash Server
 
