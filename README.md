@@ -50,22 +50,23 @@ More introductory materials:
 
 ChainCash server is software acting as a self-sovereign bank with client-side notes
 validation. It can be found at [https://github.com/ChainCashLabs/chaincash-rs](https://github.com/ChainCashLabs/chaincash-rs). 
-Initial version of [design document](docs/server.md) is also available.
+Initial version of [design document](docs/server.md) is also available. The server has basic HTTP API but no any UI.
 
 ## Contents Of This Repository
 
 * Whitepaper - https://github.com/ChainCashLabs/chaincash/blob/master/docs/conf/conf.pdf
 High-level description of ChainCash protocol and its implementation
 
+* Contracts - https://github.com/kushti/chaincash/tree/master/contracts - note and reserve contracts in ErgoScript
+
 * Modelling - https://github.com/kushti/chaincash/tree/master/src/main/scala/chaincash/model
 Contract-less and blockchain-less models of ChainCash entities and one of notes collateralization 
 estimation options.
-
-* Contracts - https://github.com/kushti/chaincash/tree/master/contracts - note and reserve contracts in ErgoScript
 * Tests - https://github.com/kushti/chaincash/blob/master/src/test/scala/kiosk/ChainCashSpec.scala - Kiosk-based tests for transactions involving note
  contracts (note creation, spending, redemption)
 * Offchain part - https://github.com/kushti/chaincash/tree/master/src/main/scala/chaincash/offchain - on-chain data tracking,
-  persistence, transaction builders
+  persistence, transaction builders. This is very rough prototype, at the moment better to look into ChainCash Server which 
+ is available at [https://github.com/ChainCashLabs/chaincash-rs](https://github.com/ChainCashLabs/chaincash-rs) .
 
 ## Communications
 
