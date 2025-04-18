@@ -1,6 +1,6 @@
 # ChainCash - elastic peer-to-peer money creation via trust and blockchain assets
 
-This repository contains whitepaper, modelling code and prototype implementation for 
+This repository contains whitepaper and some prototyping code for 
 ChainCash, a protocol to create money in self-sovereign way via trust or collateral, with collective backing and 
 individual acceptance. 
 
