@@ -4,7 +4,7 @@
     // Data:
     //  - token #0 - identifying singleton token
     //  - R4 - signing key (as a group element)
-    //  - R5 - trees of all the note tokens issued TODO: check preservation in actions
+    //  - R5 - tree of all the note tokens issued TODO: check preservation in actions
     //
     // Actions:
     //  - redeem note (#0)
@@ -123,9 +123,11 @@
       sigmaProp(selfPreserved && properOracle && redeemCorrect && properSignature && properReceipt && positionCorrect)
     } else if (action == 1) {
       // top up
+      // todo: check R5 preservation
       sigmaProp(selfPreserved && (selfOut.value - SELF.value >= 1000000000)) // at least 1 ERG added
     } else if (action == 2) {
       // issue a note
+      // todo: check R5 preservation
       sigmaProp(selfPreserved)
     } else {
       sigmaProp(false)
