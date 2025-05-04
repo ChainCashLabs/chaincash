@@ -4,7 +4,7 @@
     // Data:
     //  - token #0 - identifying singleton token
     //  - R4 - signing key (as a group element)
-    //  - R5 - tree of notes spent
+    //  - R5 - tree of notes spent (to avoid double spending)
     //  - R6 - key of payment server (as a group element) // todo: support multiple payment servers by using a tree
     //
     // Actions:
@@ -38,7 +38,11 @@
 
       val paymentServerPubKey = SELF.R6[GroupElement].get
 
-      val noteId = getVar[Coll[Byte]](1).get // todo: add to the insert-only tree
+      val noteId = getVar[Coll[Byte]](1).get
+      val keyVal = (noteId, Coll[Byte](1: Byte))  // key -> value
+      val proof = getVar[Coll[Byte]](2).get
+      val nextTree: Option[AvlTree] = SELF.R5[AvlTree].get.insert(Coll(keyVal), proof)
+      val properTree = nextTree == selfOut.R5[AvlTree].get
 
       // todo: add min spending height ?
 
@@ -74,7 +78,7 @@
       // Signature is valid if g^z = a * x^e
       val properReserveSignature = (g.exp(z) == a.multiply(ownerKey.exp(reserveEInt)))
 
-      sigmaProp(selfPreserved && properTrackerSignature && properReserveSignature)
+      sigmaProp(selfPreserved && properTree && properTrackerSignature && properReserveSignature)
     } else if (action == 1) {
       // top up
       sigmaProp(
