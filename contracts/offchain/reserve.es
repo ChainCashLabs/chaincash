@@ -1,5 +1,7 @@
 {
-    // Contract for reserve (in ERG only)
+    // Contract for on-chain reserve (in ERG only) backing offchain notes
+    // aka Basis
+    // https://www.ergoforum.org/t/basis-a-foundational-on-chain-reserve-approach-to-support-a-variety-of-offchain-protocols/5153
 
     // Data:
     //  - token #0 - identifying singleton token
