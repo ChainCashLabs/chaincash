@@ -1,7 +1,7 @@
-Git Points: framework to create currencies for online communities around Open Source projects
+Git Circles: framework to create currencies for online communities around Open Source projects
 =============================================================================================
 
-In this document, we describe Git Points, a solution to create community currencies for open source project communities.
+In this document, we describe Git Circles, a solution to create community currencies for open source project communities.
 
 Basic actions could be seen in the following example:
 
