@@ -1,4 +1,4 @@
-Offchain ChainCash variant with trusted tracker (centralized server or federated).
+Different ChainCash variants for offchain applications.
 
 
-Reserves are on-chain, notes are created and making progress offchain.
+In most cases, reserves are on-chain, notes are created and making progress offchain.
